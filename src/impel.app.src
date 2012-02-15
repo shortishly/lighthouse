@@ -1,0 +1,12 @@
+{application, impel,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { impel_application, []}},
+  {env, []}
+ ]}.
