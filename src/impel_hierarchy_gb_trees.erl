@@ -51,7 +51,11 @@ handle_call({event_manager, Path}, Recipient, State) ->
     reply(Recipient, fun() -> event_manager(Path, State) end, State);
 
 handle_call({update, Path, Value}, _, State) ->
-    {reply, ok, update(Path, Value, State)}.
+    {reply, ok, update(Path, Value, State)};
+
+handle_call(stop, _, _) ->
+    {stop, normal, ok, undefined}.
+
 
 
 handle_cast(_Msg, State) ->
@@ -73,19 +77,33 @@ code_change(_OldVsn, State, _Extra) ->
 
 
 children(Path, #state{root = Root}) ->
-    children(Path, Root);
-children([], #node{tree = Tree}) ->
+    children(Path, Root, []).
+
+children([], #node{tree = Tree}, _) ->
     {ok, children(gb_trees:next(gb_trees:iterator(Tree)))};
-children([H | T], #node{tree = Tree}) ->
+
+children([H], #node{tree = Tree}, Steps) ->
     case gb_trees:lookup(H, Tree) of
 	{value, SubNode} when is_record(SubNode, node) ->
-	    children(T, SubNode);
-
+	    children([], SubNode, [H | Steps]);
+	
 	{value, Leaf} when is_record(Leaf, leaf) ->
-	    {ok, [child(H, Leaf)]};
+	    {error, {is_a_leaf, H, lists:reverse(Steps)}};
 
 	none ->
-	    {error, not_found}
+	    {error, {not_found, H, lists:reverse(Steps)}}
+    end;
+
+children([H | T], #node{tree = Tree}, Steps) ->
+    case gb_trees:lookup(H, Tree) of
+	{value, SubNode} when is_record(SubNode, node) ->
+	    children(T, SubNode, [H | Steps]);
+
+	{value, Leaf} when is_record(Leaf, leaf) ->
+	    {error, {is_a_leaf, H, lists:reverse(Steps)}};
+
+	none ->
+	    {error, {not_found, H, lists:reverse(Steps)}}
     end.
 
 
