@@ -2,36 +2,57 @@
 -export([name/0,
 	 children/0,
 	 children/1,
-	 add_child/1,
-	 add_child/2,
-	 update_child/2,
+	 update/2,
+	 event_manager/1,
+	 type/1,
+	 created/1,
+	 updated/1,
+	 key/1,
 	 stop/0]).
 
 name() ->
     ?MODULE.
 
--opaque child() :: term().
+-type key() :: term().
+-type value() :: term().
+-opaque path() :: [key()].
 
 
--spec children() -> [child()].
+-spec children() -> [term()].
 children() ->
-    gen_server:call(name(), children).
+    children([]).
 
--spec children(child()) -> [child()].
-children(Parent) ->
-    gen_server:call(name(), {children, Parent}).
+-spec children(path()) -> {ok, [term()]} | {error, not_found}.
+children(Path) ->
+    gen_server:call(name(), {children, Path}).
 
--spec add_child(term()) -> child().
-add_child(Label) ->
-    gen_server:call(name(), {add_child, Label}).
+-spec update(path(), value()) -> ok.
+update(Path, Value) ->
+    gen_server:call(name(), {update, Path, Value}).
 
--spec add_child(child(), term()) -> child().
-add_child(Parent, Label) ->
-    gen_server:call(name(), {add_child, Parent, Label}).
+-spec event_manager(path()) -> pid().
+event_manager(Path) ->
+    gen_server:call(name(), {event_manager, Path}).
 
--spec update_child(child(), term()) -> ok.
-update_child(Child, Label) ->
-    gen_server:call(name(), {update_child, Child, Label}).
+
+
+-spec type([term()]) -> term().
+type(L) ->
+    proplists:get_value(type, L).
+
+-spec updated([term()]) -> calendar:datetime().
+updated(L) ->
+    proplists:get_value(updated, L).
+
+-spec created([term()]) -> calendar:datetime().
+created(L) ->
+    proplists:get_value(created, L).
+
+-spec key([term()]) -> term().
+key(L) ->
+    proplists:get_value(key, L).
+			  
+
 
 -spec stop() -> ok.
 stop() ->

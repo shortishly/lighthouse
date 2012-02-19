@@ -1,0 +1,13 @@
+* update
+
+update(["lobby", "casino", "players"], {player_leaves, "bob"})
+update(["lobby", "blackjack", "players"], {player_joins, "peter"})
+update(["games", "blackjack", "table", "ab12efbc"], {player_dealt, "peter", {card, ace, spades}})
+
+* event_manager
+
+event_manager(["lobby", "casino", "players"]).
+
+* delete
+
+delete(["lobby", "casino", "players"]).

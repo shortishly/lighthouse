@@ -24,15 +24,5 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, [?CHILD(impel_hierarchy_digraph, worker),
-				  ?CHILD(impel_webmachine_http_supervisor, supervisor),
-				  ?CHILD(impel_cowboy_http_supervisor, supervisor),
-				  event_manager()]}}.
-
-event_manager() ->
-    {event_manager,
-     {gen_event, start_link, [{local, impel_hierarchy_event:manager()}]},
-      permanent,
-      5000,
-      worker,
-      dynamic}. 
+    {ok, { {one_for_one, 5, 10}, [?CHILD(impel_hierarchy_gb_trees, worker),
+				  ?CHILD(impel_cowboy_http_supervisor, supervisor)]}}.
