@@ -3,6 +3,7 @@
 	 children/0,
 	 children/1,
 	 update/2,
+	 delete/1,
 	 event_manager/1,
 	 type/1,
 	 created/1,
@@ -22,7 +23,7 @@ name() ->
 children() ->
     children([]).
 
--spec children(path()) -> {ok, [term()]} | {error, not_found}.
+-spec children(path()) -> {ok, [term()]} | {error, {not_found, term(), list()}}.
 children(Path) ->
     gen_server:call(name(), {children, Path}).
 
@@ -30,7 +31,11 @@ children(Path) ->
 update(Path, Value) ->
     gen_server:call(name(), {update, Path, Value}).
 
--spec event_manager(path()) -> pid().
+-spec delete(path()) -> ok | {error, {not_found, term(), list()}}.
+delete(Path) ->
+    gen_server:call(name(), {delete, Path}).
+
+-spec event_manager(path()) -> {ok, pid()} | {error, term()}.
 event_manager(Path) ->
     gen_server:call(name(), {event_manager, Path}).
 
