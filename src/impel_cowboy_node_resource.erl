@@ -21,6 +21,9 @@ resource_exists(R1, State) ->
 	{ok, Children} ->
 	    {true, R2, State#state{children = Children}};
 
+	{error, {is_a_leaf, _, _}} ->
+	    {true, R2, State#state{children = []}};
+
 	{error, not_found} ->
 	    {false, R2, State}
     end.
