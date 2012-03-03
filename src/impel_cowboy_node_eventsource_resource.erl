@@ -33,7 +33,7 @@ handle_loop(Req, #state{event_manager = EventManager, handler = Handler, timeout
 	    handle_loop(Req, State);
 	
 	{event, Event} ->
-	    case cowboy_http_req:chunk(io_lib:format("id: ~p~ndata: ~p~n~n", [id(), Event]), Req) of
+	    case cowboy_http_req:chunk(io_lib:format("data: ~p~n~n", [jsx:to_json(Event, [space, indent])]), Req) of
 		{error, closed} ->
 		    impel_hierarchy_event:delete_handler(EventManager, Handler),
 		    {ok, Req, State};
@@ -53,11 +53,5 @@ handle_loop(Req, #state{event_manager = EventManager, handler = Handler, timeout
 	    end
     end.
 
-
 terminate(_Req, _State) ->
     ok.
-
-id() ->
-    {Mega, Sec, Micro} = erlang:now(),
-    Id = (Mega * 1000000 + Sec) * 1000000 + Micro,
-    integer_to_list(Id, 16).
