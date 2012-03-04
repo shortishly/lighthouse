@@ -33,7 +33,7 @@ handle_loop(Req, #state{event_manager = EventManager, handler = Handler, timeout
 	    handle_loop(Req, State);
 	
 	{event, {update, _, Value}} ->
-	    case cowboy_http_req:chunk(io_lib:format("data: ~p~n~n", [jsx:to_json(Value, [space, indent])]), Req) of
+	    case cowboy_http_req:chunk(io_lib:format("data: ~s~n~n", [jsx:to_json(Value, [space, indent])]), Req) of
 		{error, closed} ->
 		    impel_hierarchy_event:delete_handler(EventManager, Handler),
 		    {ok, Req, State};
