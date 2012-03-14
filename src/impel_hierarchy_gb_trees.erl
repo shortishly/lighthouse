@@ -65,7 +65,7 @@ handle_call({delete, Path}, _, S1) ->
     end;
 
 handle_call({merge, Donor}, _, State) ->
-    {reply, ok, merge(Donor, State)};
+    {reply, ok, State#state{root = merge(Donor, State)}};
 
 handle_call(stop, _, State) ->
     {stop, normal, ok, State}.
@@ -119,10 +119,10 @@ merge({Key, #node{} = Node, Iterator}, #node{tree = Tree} = Recipient) ->
     case gb_trees:lookup(Key, Tree) of
 	{value, #node{} = SubTree} ->
 	    merge(gb_trees:next(Iterator),
-		  Recipient#node{tree = gb_trees:update(Key, merge(Node, SubTree))});
+		  Recipient#node{tree = gb_trees:update(Key, merge(Node, SubTree), Tree)});
 	none ->
 	    merge(gb_trees:next(Iterator),
-		  Recipient#node{tree = gb_trees:update(Key, merge(Node, #node{}))})
+		  Recipient#node{tree = gb_trees:update(Key, merge(Node, #node{}), Tree)})
     end;
 merge(none, Recipient) ->
     Recipient.
