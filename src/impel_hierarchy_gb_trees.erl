@@ -105,7 +105,7 @@ code_change(_OldVsn, State, _Extra) ->
 merge(#state{root = Donor}, #state{root = Recipient}) ->
     merge(Donor, Recipient);
 merge(#node{tree = Donor}, #node{} = Recipient) ->
-    merge(gbtrees_trees:next(gb_trees:iterator(Donor)), Recipient);
+    merge(gb_trees:next(gb_trees:iterator(Donor)), Recipient);
 merge({Key, #leaf{} = Leaf, Iterator}, #node{tree = Tree} = Recipient) ->
     case gb_trees:lookup(Key, Tree) of
 	{value, #leaf{}} ->
