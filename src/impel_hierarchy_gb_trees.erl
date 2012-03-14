@@ -122,7 +122,7 @@ merge({Key, #node{} = Node, Iterator}, #node{tree = Tree} = Recipient) ->
 		  Recipient#node{tree = gb_trees:update(Key, merge(Node, SubTree), Tree)});
 	none ->
 	    merge(gb_trees:next(Iterator),
-		  Recipient#node{tree = gb_trees:update(Key, merge(Node, #node{}), Tree)})
+		  Recipient#node{tree = gb_trees:insert(Key, merge(Node, #node{}), Tree)})
     end;
 merge(none, Recipient) ->
     Recipient.
