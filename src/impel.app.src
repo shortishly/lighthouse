@@ -7,7 +7,7 @@
                   kernel,
                   stdlib,
 		  cowboy,
-		  impel
+		  zeroconf
                  ]},
   {mod, { impel_application, []}},
   {env, []}
