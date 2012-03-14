@@ -1,4 +1,8 @@
 -module(impel_hierarchy).
+
+%%
+%% external API
+%%
 -export([name/0,
 	 children/0,
 	 children/1,
@@ -10,6 +14,12 @@
 	 updated/1,
 	 key/1,
 	 stop/0]).
+
+%%
+%% internal API only available to other members of the cluster
+%%
+-export([merge/1,
+	 state/0]).
 
 name() ->
     ?MODULE.
@@ -38,6 +48,12 @@ delete(Path) ->
 -spec event_manager(path()) -> {ok, pid()} | {error, term()}.
 event_manager(Path) ->
     gen_server:call(name(), {event_manager, Path}).
+
+state() ->
+    gen_server:call(name(), state).
+
+merge(State) ->
+    gen_server:call(name(), {merge, State}).
 
 
 

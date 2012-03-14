@@ -32,8 +32,7 @@ start_link() ->
 -record(node, {tree = gb_trees:empty() :: gb_trees:tree(),
 	       created = calendar:universal_time() :: calendar:datetime(),
 	       updated = calendar:universal_time() :: calendar:datetime()}).
--record(leaf, {value :: term(),
-	       event_manager :: pid(),
+-record(leaf, {event_manager :: pid(),
 	       created = calendar:universal_time() :: calendar:datetime(),
 	       updated = calendar:universal_time() :: calendar:datetime()}).
 -record(state, {root = #node{}}).
@@ -53,6 +52,9 @@ handle_call({event_manager, Path}, Recipient, State) ->
 handle_call({update, Path, Value}, _, State) ->
     {reply, ok, update(Path, Value, State)};
 
+handle_call(state, _, State) ->
+    {reply, State, State};
+
 handle_call({delete, Path}, _, S1) ->
     case delete(Path, S1) of
 	{ok, S2} ->
@@ -61,6 +63,9 @@ handle_call({delete, Path}, _, S1) ->
 	{error, _} = Otherwise ->
 	    {reply, Otherwise, S1}
     end;
+
+handle_call({merge, Donor}, _, State) ->
+    {reply, ok, merge(Donor, State)};
 
 handle_call(stop, _, State) ->
     {stop, normal, ok, State}.
@@ -95,6 +100,33 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
+
+
+merge(#state{root = Donor}, #state{root = Recipient}) ->
+    merge(Donor, Recipient);
+merge(#node{tree = Donor}, #node{} = Recipient) ->
+    merge(gbtrees_trees:next(gb_trees:iterator(Donor)), Recipient);
+merge({Key, #leaf{} = Leaf, Iterator}, #node{tree = Tree} = Recipient) ->
+    case gb_trees:lookup(Key, Tree) of
+	{value, #leaf{}} ->
+	    merge(gb_trees:next(Iterator), Recipient);
+	none ->
+	    {ok, EventManager} = gen_event:start(),
+	    merge(gb_trees:next(Iterator),
+		  Recipient#node{tree = gb_trees:insert(Key, Leaf#leaf{event_manager = EventManager}, Tree)})
+    end;
+merge({Key, #node{} = Node, Iterator}, #node{tree = Tree} = Recipient) ->
+    case gb_trees:lookup(Key, Tree) of
+	{value, #node{} = SubTree} ->
+	    merge(gb_trees:next(Iterator),
+		  Recipient#node{tree = gb_trees:update(Key, merge(Node, SubTree))});
+	none ->
+	    merge(gb_trees:next(Iterator),
+		  Recipient#node{tree = gb_trees:update(Key, merge(Node, #node{}))})
+    end;
+merge(none, Recipient) ->
+    Recipient.
+
 
 
 
@@ -143,8 +175,7 @@ child(Key, V) when is_record(V, leaf) ->
     [{type, leaf},
      {key, Key},
      {created, V#leaf.created},
-     {updated, V#leaf.updated},
-     {value, V#leaf.value}].
+     {updated, V#leaf.updated}].
 
 update(Path, V, #state{root = Root} = S) ->
     S#state{root = update(Path, V, Root, [])}.
@@ -154,11 +185,11 @@ update([K], V, #node{tree = Tree} = Node, A) ->
     case gb_trees:lookup(K, Tree) of
 	{value, #leaf{event_manager = EventManager} = Existing} ->
 	    impel_hierarchy_event:notify_update(EventManager, lists:reverse([K | A]), V),
-	    Node#node{tree = gb_trees:enter(K, Existing#leaf{value = V, updated = Updated}, Tree), updated = Updated};
+	    Node#node{tree = gb_trees:enter(K, Existing#leaf{updated = Updated}, Tree), updated = Updated};
 
 	none ->
 	    {ok, EventManager} = gen_event:start(),
-	    Node#node{tree = gb_trees:enter(K, #leaf{value = V, event_manager = EventManager}, Tree), updated = Updated}
+	    Node#node{tree = gb_trees:enter(K, #leaf{event_manager = EventManager}, Tree), updated = Updated}
     end;
 update([H | T], V, #node{tree = Tree} = Node, A) ->
     case gb_trees:lookup(H, Tree) of

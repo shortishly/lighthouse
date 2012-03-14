@@ -1,13 +1,25 @@
-* update
+* Push Hierarchy
+** Cluster
+*** TODO tombstone on deletion from the hierarchy
+    Tombstone marks a node as having been deleted from the hierarchy
+    and will be propagated to other members of the cluster during
+    synchronization.
+
+*** TODO checkpoint to evict tombstones after their lease has expired
+    Tombstones are evicted from the cluster after they have been
+    propagated to the whole cluster, or after a lease period has
+    expired?
+
+** API
+*** update
 
 update(["lobby", "casino", "players"], {player_leaves, "bob"})
 update(["lobby", "blackjack", "players"], {player_joins, "peter"})
 update(["games", "blackjack", "table", "ab12efbc"], {player_dealt, "peter", {card, ace, spades}})
 
-* event_manager
+*** event_manager
 
 event_manager(["lobby", "casino", "players"]).
 
-* delete
-
-delete(["lobby", "casino", "players"]).
+*** deletion
+    delete(["lobby", "casino", "players"]).
