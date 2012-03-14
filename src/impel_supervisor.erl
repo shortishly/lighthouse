@@ -25,4 +25,5 @@ start_link() ->
 
 init([]) ->
     {ok, { {one_for_one, 5, 10}, [?CHILD(impel_hierarchy_gb_trees, worker),
+				  ?CHILD(impel_monitor_node_server, worker),
 				  ?CHILD(impel_cowboy_http_supervisor, supervisor)]}}.
