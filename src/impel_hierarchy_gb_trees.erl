@@ -70,8 +70,17 @@ handle_call({merge, Donor}, _, State) ->
 handle_call(stop, _, State) ->
     {stop, normal, ok, State}.
 
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+handle_cast({update, Path, Value}, State) ->
+    {noreply, update(Path, Value, State)};
+handle_cast({delete, Path}, S1) ->
+    case delete(Path, S1) of
+	{ok, S2} ->
+	    {noreply, S2};
+
+	{error, _} ->
+	    {noreply, S1}
+    end.
+
 
 handle_info(_Info, State) ->
     {noreply, State}.

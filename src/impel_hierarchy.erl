@@ -39,11 +39,11 @@ children(Path) ->
 
 -spec update(path(), value()) -> ok.
 update(Path, Value) ->
-    gen_server:call(name(), {update, Path, Value}).
+    gen_server:abcast(name(), {update, Path, Value}).
 
 -spec delete(path()) -> ok | {error, {not_found, term(), list()}}.
 delete(Path) ->
-    gen_server:call(name(), {delete, Path}).
+    gen_server:abcast(name(), {delete, Path}).
 
 -spec event_manager(path()) -> {ok, pid()} | {error, term()}.
 event_manager(Path) ->
