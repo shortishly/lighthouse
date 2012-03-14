@@ -4,6 +4,7 @@
 
 start() ->
     ok = ensure(cowboy),
+    ok = ensure(zeroconf),
     ok = application:start(impel).
 
 ensure(Application) ->
