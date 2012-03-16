@@ -83,7 +83,7 @@ host(R1) ->
     error_logger:info_report([{host, Host},
 			      {raw_host, Raw},
 			      {port, Port}]),
-    host(Host, Port).
+    host(Raw, Port).
 
 host(Host, 80) ->
     Host;
