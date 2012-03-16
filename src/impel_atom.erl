@@ -88,7 +88,7 @@ host(R1) ->
 host(Host, 80) ->
     Host;
 host(Host, Port) ->
-    Host ++ [":" | integer_to_list(Port)].
+    binary_to_list(Host) ++ [":" | integer_to_list(Port)].
 
 
 protocol(_ReqData) ->
