@@ -65,7 +65,7 @@ code_change(_OldVsn, State, _Extra) ->
 nodeup(Node) ->
     case is_impel_node(Node) of
 	true ->
-	    impel_hierarchy:merge(rpc:call(Node, impel_hierarchy, state, []));
+	    impel_hierarchy:merge(rpc:call(Node, impel_hierarchy, hierarchy, []));
 	_ ->
 	    nop
     end.

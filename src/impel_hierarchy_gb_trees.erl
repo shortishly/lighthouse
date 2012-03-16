@@ -32,10 +32,20 @@ start_link() ->
 -record(node, {tree = gb_trees:empty() :: gb_trees:tree(),
 	       created = calendar:universal_time() :: calendar:datetime(),
 	       updated = calendar:universal_time() :: calendar:datetime()}).
--record(leaf, {event_manager :: pid(),
-	       created = calendar:universal_time() :: calendar:datetime(),
+
+-record(leaf, {created = calendar:universal_time() :: calendar:datetime(),
 	       updated = calendar:universal_time() :: calendar:datetime()}).
--record(state, {root = #node{}}).
+
+-record(event_manager, {hash :: number(), pid :: pid()}).
+
+-record(state, {root = #node{},
+		event_managers = ets:new(event_managers, [set,
+							  protected,
+							  {keypos, 2},
+							  {heir, none},
+							  {write_concurrency, false},
+							  {read_concurrency, false}])}).
+
 
 init(Args) ->
     init(Args, #state{}).
@@ -46,14 +56,14 @@ init([], State) ->
 handle_call({children, Path}, Recipient, State) ->
     reply(Recipient, fun() -> children(Path, State) end, State);
 
-handle_call({event_manager, Path}, Recipient, State) ->
-    reply(Recipient, fun() -> event_manager(Path, State) end, State);
+handle_call({event_manager, Path}, _, State) ->
+    {reply, event_manager(Path, State), State};
 
 handle_call({update, Path, Value}, _, State) ->
     {reply, ok, update(Path, Value, State)};
 
-handle_call(state, _, State) ->
-    {reply, State, State};
+handle_call(hierarchy, _, #state{root = Root} = State) ->
+    {reply, #state{root = Root}, State};
 
 handle_call({delete, Path}, _, S1) ->
     case delete(Path, S1) of
@@ -89,20 +99,6 @@ terminate(_,  S) ->
     cleanup(S),
     ok.
 
-cleanup(#state{root = Root} = S) ->
-    cleanup(Root, S).
-
-cleanup(#node{tree = Tree}, S) ->
-    cleanup(gb_trees:next(gb_trees:iterator(Tree)), S);
-
-cleanup({Key, _, Iterator}, S1) ->
-    {ok, S2} = delete([Key], S1),
-    cleanup(gb_trees:next(Iterator), S2);
-
-cleanup(none, S) ->
-    S.
-
-
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
@@ -120,9 +116,8 @@ merge({Key, #leaf{} = Leaf, Iterator}, #node{tree = Tree} = Recipient) ->
 	{value, #leaf{}} ->
 	    merge(gb_trees:next(Iterator), Recipient);
 	none ->
-	    {ok, EventManager} = gen_event:start(),
 	    merge(gb_trees:next(Iterator),
-		  Recipient#node{tree = gb_trees:insert(Key, Leaf#leaf{event_manager = EventManager}, Tree)})
+		  Recipient#node{tree = gb_trees:insert(Key, Leaf, Tree)})
     end;
 merge({Key, #node{} = Node, Iterator}, #node{tree = Tree} = Recipient) ->
     case gb_trees:lookup(Key, Tree) of
@@ -186,31 +181,36 @@ child(Key, V) when is_record(V, leaf) ->
      {created, V#leaf.created},
      {updated, V#leaf.updated}].
 
-update(Path, V, #state{root = Root} = S) ->
-    S#state{root = update(Path, V, Root, [])}.
+update(Path, Value, #state{root = Root} = S) ->
+    impel_hierarchy_event:notify_update(event_manager(Path, S), Path, Value),
+    S#state{root = update(Path, Root)}.
 
-update([K], V, #node{tree = Tree} = Node, A) ->
+update([K], #node{tree = Tree} = Node) ->
     Updated = calendar:universal_time(),
     case gb_trees:lookup(K, Tree) of
-	{value, #leaf{event_manager = EventManager} = Existing} ->
-	    impel_hierarchy_event:notify_update(EventManager, lists:reverse([K | A]), V),
+	{value, #leaf{} = Existing} ->
 	    Node#node{tree = gb_trees:enter(K, Existing#leaf{updated = Updated}, Tree), updated = Updated};
 
-	none ->
-	    {ok, EventManager} = gen_event:start(),
-	    Node#node{tree = gb_trees:enter(K, #leaf{event_manager = EventManager}, Tree), updated = Updated}
-    end;
-update([H | T], V, #node{tree = Tree} = Node, A) ->
-    case gb_trees:lookup(H, Tree) of
-	{value, SubNode} when is_record(SubNode, node) ->
-	    Node#node{tree = gb_trees:update(H, update(T, V, SubNode, [H | A]), Tree)};
+	{value, #node{} = Existing} ->
+	    Node#node{tree = gb_trees:enter(K, Existing#node{updated = Updated}, Tree)};
 
 	none ->
-	    Node#node{tree = gb_trees:insert(H, update(T, V, #node{}, [H | A]), Tree)}
+	    Node#node{tree = gb_trees:enter(K, #leaf{}, Tree), updated = Updated}
+    end;
+update([H | T], #node{tree = Tree} = Node) ->
+    case gb_trees:lookup(H, Tree) of
+	{value, #node{} = SubNode} ->
+	    Node#node{tree = gb_trees:update(H, update(T, SubNode), Tree)};
+
+	{value, #leaf{created = Created}} ->
+	    Node#node{tree = gb_trees:update(H, update(T, #node{created = Created}), Tree)};
+
+	none ->
+	    Node#node{tree = gb_trees:insert(H, update(T, #node{}), Tree)}
     end.
 
-delete(Path, #state{root = R1} = S) ->
-    case delete(Path, R1, []) of
+delete(Path, #state{root = R1, event_managers = EventManagers} = S) ->
+    case delete(Path, R1, [], EventManagers) of
 	{ok, R2} ->
 	    {ok, S#state{root = R2}};
 
@@ -218,24 +218,25 @@ delete(Path, #state{root = R1} = S) ->
 	    Otherwise
     end.
 
-delete([K], #node{tree = Tree} = Node, A) ->
+delete([K], #node{tree = Tree} = Node, A, EventManagers) ->
     Updated = calendar:universal_time(),
     case gb_trees:lookup(K, Tree) of
-	{value, #leaf{event_manager = EventManager}} ->
-	    ok = gen_event:stop(EventManager),
+	{value, #leaf{}} ->
+	    delete_event_manager(lists:reverse([K | A]), EventManagers),
 	    {ok, Node#node{tree = gb_trees:delete(K, Tree), updated = Updated}};
 
 	{value, #node{tree = SubTree} = SubNode} when is_record(SubNode, node) ->
-	    [delete([Key], SubNode, [K | A]) || Key <- gb_trees:keys(SubTree)],
+	    [delete([Key], SubNode, [K | A], EventManagers) || Key <- gb_trees:keys(SubTree)],
+	    delete_event_manager(lists:reverse([K | A]), EventManagers),	    
 	    {ok, Node#node{tree = gb_trees:delete(K, Tree), updated = Updated}};
 
 	none ->
 	    {error, {not_found, K, lists:reverse(A)}}
     end;
-delete([H | T], #node{tree = Tree} = Node, A) ->
+delete([H | T], #node{tree = Tree} = Node, A, EventManagers) ->
     case gb_trees:lookup(H, Tree) of
 	{value, SubNode1} when is_record(SubNode1, node) ->
-	    case delete(T, SubNode1, [H | A]) of
+	    case delete(T, SubNode1, [H | A], EventManagers) of
 		{ok, SubNode2} ->
 		    {ok, Node#node{tree = gb_trees:update(H, SubNode2, Tree)}};
 		
@@ -248,29 +249,47 @@ delete([H | T], #node{tree = Tree} = Node, A) ->
     end.
 
 
+event_manager(Path, #state{event_managers = EventManagers} = State) ->
+    Hash = erlang:phash2(Path),
+    case ets:lookup(EventManagers, Hash) of
+	[#event_manager{pid = Pid}] ->
+	    Pid;
 
+	[] ->
+	    {ok, Pid} = gen_event:start(),
+	    case ets:insert_new(EventManagers, #event_manager{hash = Hash, pid = Pid}) of
+		true ->
+		    Pid;
 
-event_manager(Path, #state{root = Root}) ->
-    event_manager(Path, Root);
-event_manager([H], #node{tree = Tree}) ->
-    case gb_trees:lookup(H, Tree) of
-	{value, #leaf{event_manager = EventManager}} ->
-	    {ok, EventManager};
-
-	{value, #node{}} ->
-	    {error, not_a_leaf};
-
-	none ->
-	    {error, not_found}
-    end;
-event_manager([H | T], #node{tree = Tree}) ->
-    case gb_trees:lookup(H, Tree) of
-	{value, SubNode} when is_record(SubNode, node) ->
-	    event_manager(T, SubNode);
-	none ->
-	    {error, not_found}
+		false ->
+		    ok = gen_event:stop(Pid),
+		    event_manager(Path, State)
+	    end
     end.
 
+delete_event_manager(Path, EventManagers) ->
+    Hash = erlang:phash2(Path),
+    case ets:lookup(EventManagers, Hash) of
+	[#event_manager{pid = Pid}] ->
+	    ok = gen_event:stop(Pid),
+	    true = ets:delete(EventManagers, Hash);
+	[] ->
+	    ok
+    end.
+
+
+cleanup(#state{root = Root} = S) ->
+    cleanup(Root, S).
+
+cleanup(#node{tree = Tree}, S) ->
+    cleanup(gb_trees:next(gb_trees:iterator(Tree)), S);
+
+cleanup({Key, _, Iterator}, S1) ->
+    {ok, S2} = delete([Key], S1),
+    cleanup(gb_trees:next(Iterator), S2);
+
+cleanup(none, S) ->
+    S.
 
 
 

@@ -19,7 +19,7 @@
 %% internal API only available to other members of the cluster
 %%
 -export([merge/1,
-	 state/0]).
+	 hierarchy/0]).
 
 name() ->
     ?MODULE.
@@ -39,18 +39,20 @@ children(Path) ->
 
 -spec update(path(), value()) -> ok.
 update(Path, Value) ->
-    gen_server:abcast(name(), {update, Path, Value}).
+    gen_server:abcast(name(), {update, Path, Value}),
+    ok.
 
 -spec delete(path()) -> ok | {error, {not_found, term(), list()}}.
 delete(Path) ->
-    gen_server:abcast(name(), {delete, Path}).
+    gen_server:abcast(name(), {delete, Path}),
+    ok.
 
 -spec event_manager(path()) -> {ok, pid()} | {error, term()}.
 event_manager(Path) ->
     gen_server:call(name(), {event_manager, Path}).
 
-state() ->
-    gen_server:call(name(), state).
+hierarchy() ->
+    gen_server:call(name(), hierarchy).
 
 merge(State) ->
     gen_server:call(name(), {merge, State}).

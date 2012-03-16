@@ -34,6 +34,21 @@ add_leaf_test(_) ->
     leaf = impel_hierarchy:type(A),
     {error, {is_a_leaf, a, []}} = impel_hierarchy:children([a]).
 
+leaf_into_a_branch_test(_) ->
+    impel_hierarchy:update([a], 1),
+    {ok, [A1]} = impel_hierarchy:children(),
+    a = impel_hierarchy:key(A1),
+    leaf = impel_hierarchy:type(A1),
+    {error, {is_a_leaf, a, []}} = impel_hierarchy:children([a]),
+    impel_hierarchy:update([a, b], 1),
+    {ok, [A2]} = impel_hierarchy:children(),
+    a = impel_hierarchy:key(A2),
+    branch = impel_hierarchy:type(A2),
+    {ok, [B]} = impel_hierarchy:children([a]),
+    b = impel_hierarchy:key(B),
+    leaf = impel_hierarchy:type(B).
+    
+
 add_branch_test(_) ->
     impel_hierarchy:update([a, b], 1),
     {ok, [A]} = impel_hierarchy:children(),
@@ -73,18 +88,19 @@ not_found_test(_) ->
 event_manager_leaf_test(_) ->
     Leaf = [a, b, c],
     impel_hierarchy:update(Leaf, 1),
-    {ok, EventManager} = impel_hierarchy:event_manager(Leaf),
+    EventManager = impel_hierarchy:event_manager(Leaf),
     ?assert(is_process_alive(EventManager)).
 
 event_manager_branch_test(_) ->
     Branch = [a, b],
     impel_hierarchy:update(Branch ++ [c], 1),
-    ?assertEqual({error, not_a_leaf}, impel_hierarchy:event_manager(Branch)).
+    EventManager = impel_hierarchy:event_manager(Branch),
+    ?assert(is_process_alive(EventManager)).
 
 delete_leaf_test(_) ->
     Leaf = [a, b, c],
     impel_hierarchy:update(Leaf, 1),
-    {ok, EventManager} = impel_hierarchy:event_manager(Leaf),
+    EventManager = impel_hierarchy:event_manager(Leaf),
     ?assert(is_process_alive(EventManager)),
     impel_hierarchy:delete(Leaf),
     ?assertEqual({ok, []}, impel_hierarchy:children([a, b])),
@@ -94,7 +110,7 @@ delete_branch_test(_) ->
     Branch = [a, b],
     Leaf = Branch ++ [c],
     impel_hierarchy:update(Leaf, 1),
-    {ok, C} = impel_hierarchy:event_manager(Leaf),
+    C = impel_hierarchy:event_manager(Leaf),
     ?assert(is_process_alive(C)),
     impel_hierarchy:delete(Branch),
     ?assertEqual({ok, []}, impel_hierarchy:children([a])),
@@ -106,9 +122,9 @@ delete_subtree_test(_) ->
     impel_hierarchy:update(L1, 1),
     L2 = Branch ++ [f, g],
     impel_hierarchy:update(L2, 1),
-    {ok, E} = impel_hierarchy:event_manager(L1),
+    E = impel_hierarchy:event_manager(L1),
     ?assert(is_process_alive(E)),
-    {ok, G} = impel_hierarchy:event_manager(L2),
+    G = impel_hierarchy:event_manager(L2),
     ?assert(is_process_alive(G)),
     impel_hierarchy:delete(Branch),
     ?assertEqual({ok, []}, impel_hierarchy:children([a])),
@@ -121,9 +137,9 @@ delete_root_test(_) ->
     impel_hierarchy:update(L1, 1),
     L2 = Branch ++ [f, g],
     impel_hierarchy:update(L2, 1),
-    {ok, E} = impel_hierarchy:event_manager(L1),
+    E = impel_hierarchy:event_manager(L1),
     ?assert(is_process_alive(E)),
-    {ok, G} = impel_hierarchy:event_manager(L2),
+    G = impel_hierarchy:event_manager(L2),
     ?assert(is_process_alive(G)),
     impel_hierarchy:delete([a]),
     ?assertEqual({ok, []}, impel_hierarchy:children()),
