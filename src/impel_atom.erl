@@ -77,12 +77,8 @@ updated(L) ->
 
 
 host(R1) ->
-    {Host, R2} = cowboy_http_req:host(R1),
-    {Raw, R3} = cowboy_http_req:raw_host(R2),
-    {Port, _} = cowboy_http_req:port(R3),
-    error_logger:info_report([{host, Host},
-			      {raw_host, Raw},
-			      {port, Port}]),
+    {Raw, R2} = cowboy_http_req:raw_host(R1),
+    {Port, _} = cowboy_http_req:port(R2),
     host(Raw, Port).
 
 host(Host, 80) ->
