@@ -1,6 +1,8 @@
 -module(impel_cowboy_node_eventsource_resource).
 -behaviour(cowboy_http_handler).
--export([init/3, handle/2, terminate/2]).
+-export([init/3,
+	 handle/2,
+	 terminate/2]).
 
 -record(state, {handler, event_manager, timeout = 5000}).
 

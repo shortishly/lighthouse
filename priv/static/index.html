@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <title>Event Source</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/body.css" />
+
+    <script type="text/javascript" src="/static/js/jquery-1.7.1.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.sparkline-1.6.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.eventsource.js"></script>
+    <script type="text/javascript" src="/static/js/impel.js"></script>
+
+  </head>
+  <body>
+    <div id="header">
+      <h1>Event Source</h1>
+    </div>
+    
+    <div id="side">
+      <ul id="navigation">
+	<li><a href="home.html">home</a></li>
+	<li><a href="nodes.html">nodes</a></li>
+      </ul>
+    </div>
+
+    <div id="monitoring">
+      <strong>Monitoring</strong>
+      <dl>
+	<dt>Processes</dt>
+	<dd class="processes"></dd>
+
+	<dt>Reductions</dt>
+	<dd class="reductions"></dd>
+
+	<dt>Bytes In</dt>
+	<dd class="input_bytes"></dd>
+
+	<dt>Bytes Out</dt>
+	<dd class="output_bytes"></dd>
+
+	<dt>Run Queue</dt>
+	<dd class="run_queue"></dd>
+
+	<dt>Context Switches</dt>
+	<dd class="context_switches"></dd>
+      </dl>
+    </div>
+  </body>
+</html>
