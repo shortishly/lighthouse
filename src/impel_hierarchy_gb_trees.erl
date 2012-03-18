@@ -50,6 +50,7 @@ handle_call({event_manager, Path}, Recipient, State) ->
     reply(Recipient, fun() -> event_manager(Path, State) end, State);
 
 handle_call({update, Path, Value}, _, State) ->
+    impel_monitoring:increment_counter(inbound_messages),
     {reply, ok, update(Path, Value, State)};
 
 handle_call(state, _, State) ->

@@ -7,6 +7,7 @@
 -record(state, {handler, event_manager, timeout = 5000}).
 
 init({tcp, http}, R1, []) ->
+    impel_monitoring:increment_counter(connections),
     {Path, R2} = cowboy_http_req:path_info(R1),
     case impel_hierarchy:event_manager(Path) of
 	{ok, EventManager} ->
@@ -41,6 +42,7 @@ handle_loop(Req, #state{event_manager = EventManager, handler = Handler, timeout
 		    {ok, Req, State};
 		
 		ok ->
+		    impel_monitoring:increment_counter(outbound_messages),
 		    handle_loop(Req, State)
 	    end
 
@@ -56,4 +58,5 @@ handle_loop(Req, #state{event_manager = EventManager, handler = Handler, timeout
     end.
 
 terminate(_Req, _State) ->
+    impel_monitoring:decrement_counter(connections),
     ok.

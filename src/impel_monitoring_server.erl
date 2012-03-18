@@ -32,6 +32,7 @@ start_link() ->
 
 -record(state, {interval=5000,
 		samples=[],
+		counters=dict:new(),
 		n=36,
 		timer
 	       }).
@@ -47,8 +48,11 @@ init([], #state{interval=Interval} = S) ->
 handle_call(samples, _, #state{samples = Samples} = State) ->
     {reply, Samples, State}.
 
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+handle_cast({increment_counter, Counter}, #state{counters = Counters} = State) ->
+    {noreply, State#state{counters = dict:update_counter(Counter, 1, Counters)}};
+
+handle_cast({decrement_counter, Counter}, #state{counters = Counters} = State) ->
+    {noreply, State#state{counters = dict:update_counter(Counter, -1, Counters)}}.
 
 handle_info(sample, State) ->
     {noreply, update(State)}.
@@ -67,10 +71,10 @@ code_change(_OldVsn, State, _Extra) ->
 update(#state{samples = Samples, n = N} = S) ->
     S#state{samples = lists:foldl(fun({Key, Sample}, A) ->
 					  [{Key, [Sample | lists:sublist(proplists:get_value(Key, Samples, []), N)]} | A]
-				  end, [], samples())}.
+				  end, [], samples(S))}.
 
 
-samples() ->
+samples(#state{counters = Counters}) ->
     RunQueue = statistics(run_queue),
     {{input, Input}, {output, Output}} = statistics(io),
     {ContextSwitches, 0} = statistics(context_switches),
@@ -81,6 +85,6 @@ samples() ->
      {output_bytes, Output},
      {context_switches, ContextSwitches},
      {total_reductions, TotalReductions},
-     {reductions, Reductions}
+     {reductions, Reductions} | dict:to_list(Counters)
     ].
 
