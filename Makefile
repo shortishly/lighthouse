@@ -1,12 +1,19 @@
 REBAR = rebar
 DIALYZER = dialyzer
 
-.PHONY: all clean compile test ct build-plt dialyze
+.PHONY: all deps clean compile test ct build-plt dialyze
 
 all:	clean compile ct
 
 clean:
 	@$(REBAR) clean
+
+squeaky: clean
+	@$(REBAR) delete-deps
+
+deps:
+	@$(REBAR) get-deps
+
 
 compile:
 	@$(REBAR) compile

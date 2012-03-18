@@ -36,17 +36,5 @@ terminate(_Req, _State) ->
     ok.
 
 monitor() ->
-    RunQueue = statistics(run_queue),
-    {{input, Input}, {output, Output}} = statistics(io),
-    {ContextSwitches, 0} = statistics(context_switches),
-    {TotalReductions, Reductions} = statistics(reductions),
-    [{monitor, [
-		{processes, length(processes())},
-		{run_queue, RunQueue},
-		{input_bytes, Input},
-		{output_bytes, Output},
-		{context_switches, ContextSwitches},
-		{total_reductions, TotalReductions},
-		{reductions, Reductions}
-	       ]}].
+    [{monitor, impel_monitoring:samples()}].
 

@@ -10,12 +10,12 @@ Impel = (function() {
 	    },
 
 	    message: function(data) {
-		$("#monitoring .processes").html(data.monitor.processes);
-		$("#monitoring .reductions").html(data.monitor.reductions);
-		$("#monitoring .input_bytes").html(data.monitor.input_bytes);
-		$("#monitoring .output_bytes").html(data.monitor.output_bytes);
-		$("#monitoring .run_queue").html(data.monitor.run_queue);
-		$("#monitoring .context_switches").html(data.monitor.context_switches);
+		$("#monitoring .processes").sparkline(data.monitor.processes);
+		$("#monitoring .reductions").sparkline(data.monitor.reductions);
+		$("#monitoring .input_bytes").sparkline(data.monitor.input_bytes);
+		$("#monitoring .output_bytes").sparkline(data.monitor.output_bytes);
+		$("#monitoring .run_queue").sparkline(data.monitor.run_queue);
+		$("#monitoring .context_switches").sparkline(data.monitor.context_switches);
 		console.log(data);
 	    }
 	});
