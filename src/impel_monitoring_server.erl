@@ -32,7 +32,7 @@ start_link() ->
 
 -record(state, {interval=5000,
 		samples=[],
-		n=300,
+		n=36,
 		timer
 	       }).
 

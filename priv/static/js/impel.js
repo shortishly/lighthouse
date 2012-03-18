@@ -10,13 +10,11 @@ Impel = (function() {
 	    },
 
 	    message: function(data) {
-		$("#monitoring .processes").sparkline(data.monitor.processes);
-		$("#monitoring .reductions").sparkline(data.monitor.reductions);
-		$("#monitoring .input_bytes").sparkline(data.monitor.input_bytes);
-		$("#monitoring .output_bytes").sparkline(data.monitor.output_bytes);
-		$("#monitoring .run_queue").sparkline(data.monitor.run_queue);
-		$("#monitoring .context_switches").sparkline(data.monitor.context_switches);
-		console.log(data);
+		for (object in data) {
+		    for(field in data[object]) {
+			$("#" + object + " ." + field).sparkline(data[object][field]);
+		    }
+		}
 	    }
 	});
     })();

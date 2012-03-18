@@ -36,5 +36,5 @@ terminate(_Req, _State) ->
     ok.
 
 monitor() ->
-    [{monitor, impel_monitoring:samples()}].
+    [{monitoring, impel_monitoring:samples()}].
 
