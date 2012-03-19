@@ -9,17 +9,11 @@
 init({tcp, http}, R1, []) ->
     impel_monitoring:increment_counter(connections),
     {Path, R2} = cowboy_http_req:path_info(R1),
-    case impel_hierarchy:event_manager(Path) of
-	{ok, EventManager} ->
-	    Id = {emitter, self()},
-	    Handler = {impel_hierarchy_http_eventsource_handler, Id},
-	    impel_hierarchy_event:add_handler(EventManager, Handler, [Id]),
-	    {ok, R2, #state{handler = Handler, event_manager = EventManager}};
-
-	{error, not_found} ->
-	    {ok, R3} = cowboy_http_req:reply(404, R2),
-	    {shutdown, R3, undefined}
-    end.
+    EventManager = impel_hierarchy:event_manager(Path),
+    Id = {emitter, self()},
+    Handler = {impel_hierarchy_http_eventsource_handler, Id},
+    impel_hierarchy_event:add_handler(EventManager, Handler, [Id]),
+    {ok, R2, #state{handler = Handler, event_manager = EventManager}}.
 
 handle(Req, State) ->
     Headers = [{'Content-Type', <<"text/event-stream">>}],
