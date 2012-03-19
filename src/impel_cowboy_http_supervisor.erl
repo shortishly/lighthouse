@@ -12,9 +12,29 @@ start_link(P) ->
 init(_) ->
     Dispatch = [
 		{'_', [
-		       {[<<"nodes">>], impel_cowboy_nodes_resource, []},
-		       {[<<"node">>, '...'], impel_cowboy_node_resource, []},
-		       {[<<"es">>, '...'], impel_cowboy_node_eventsource_resource, []}
+		       {[<<"static">>, '...'],
+			impel_cowboy_http_static_resource,
+			[{root, "static"}]},
+
+		       {[<<"monitoring">>],
+			impel_cowboy_monitoring_eventsource_resource,
+			[]},
+
+		       {[<<"admin">>],
+			impel_cowboy_admin_resource,
+			[]},
+
+		       {[<<"nodes">>],
+			impel_cowboy_nodes_resource,
+			[]},
+
+		       {[<<"node">>, '...'], 
+			impel_cowboy_node_resource, 
+			[]},
+
+		       {[<<"es">>, '...'], 
+			impel_cowboy_node_eventsource_resource, 
+			[]}
 		      ]}
 	       ],
     {ok, {{one_for_one, 5, 10},

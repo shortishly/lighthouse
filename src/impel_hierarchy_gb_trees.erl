@@ -60,6 +60,7 @@ handle_call({event_manager, Path}, _, State) ->
     {reply, event_manager(Path, State), State};
 
 handle_call({update, Path, Value}, _, State) ->
+    impel_monitoring:increment_counter(inbound_messages),
     {reply, ok, update(Path, Value, State)};
 
 handle_call(hierarchy, _, #state{root = Root} = State) ->
