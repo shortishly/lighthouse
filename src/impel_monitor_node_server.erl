@@ -31,6 +31,7 @@ start_link() ->
 %% ------------------------------------------------------------------
 
 init(Args) ->
+    process_flag(trap_exit, true),
     ok = net_kernel:monitor_nodes(true),
     {ok, Args}.
 

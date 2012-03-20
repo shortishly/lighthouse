@@ -48,6 +48,7 @@ start_link() ->
 
 
 init(Args) ->
+    process_flag(trap_exit, true),
     init(Args, #state{}).
 
 init([], State) ->
