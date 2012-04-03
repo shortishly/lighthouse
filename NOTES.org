@@ -1,4 +1,11 @@
 * Push Hierarchy
+** General
+*** TODO source plugin for a queuing system
+    look at using RabbitMQ as a source of events into push.
+
+** Operations
+*** TODO look at Basho Bench for some ideas on performance testing
+*** TODO look at Basho Control for some ideas on the admin interface
 ** Cluster
 *** TODO tombstone on deletion from the hierarchy
     Tombstone marks a node as having been deleted from the hierarchy
