@@ -36,7 +36,7 @@ entry(ReqData, _, Entry, Path, branch) ->
     Node = [join(Path ++ [impel_hierarchy:key(Entry)])],
     [<<"<entry>">>,
      title(Entry),
-     io_lib:format("<link href=\"~s~s/node/~s\"/>", ph(ReqData) ++ Node),
+     io_lib:format("<link href=\"~s~s/node/~s\" type=\"application/atom+xml\"/>", ph(ReqData) ++ Node),
      io_lib:format("<id>urn:tag:nodes.example.com,~s/~s</id>", [ymd(impel_hierarchy:created(Entry)), impel_hierarchy:key(Entry)]),
      updated(Entry),
      <<"</entry>">>];
@@ -44,7 +44,7 @@ entry(ReqData, _, Entry, Path, leaf) ->
     Node = [join(Path ++ [impel_hierarchy:key(Entry)])],
     [<<"<entry>">>,
      title(Entry),
-     io_lib:format("<link href=\"~s~s/es/~s\"/>", ph(ReqData) ++ Node),
+     io_lib:format("<link href=\"~s~s/es/~s\" type=\"text/event-stream\"/>", ph(ReqData) ++ Node),
      io_lib:format("<id>urn:tag:nodes.example.com,~s/~s</id>", [ymd(impel_hierarchy:created(Entry)), Node]),
      updated(Entry),
      <<"</entry>">>].
