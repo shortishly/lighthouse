@@ -39,6 +39,7 @@ init(_) ->
 	       ],
     {ok, {{one_for_one, 5, 10},
 	  [cowboy:child_spec(http, 100,
-			     cowboy_tcp_transport, [{port, 8080}],
+			     cowboy_tcp_transport, [{port, 8080},
+						    {max_connections, 4096}],
 			     cowboy_http_protocol, [{dispatch, Dispatch}])]}}.
     
