@@ -38,8 +38,8 @@ init(_) ->
 		      ]}
 	       ],
     {ok, {{one_for_one, 5, 10},
-	  [cowboy:child_spec(http, 10000,
+	  [cowboy:child_spec(http, 1000,
 			     cowboy_tcp_transport, [{port, 8080},
-						    {max_connections, 4096}],
+						    {max_connections, 1000000}],
 			     cowboy_http_protocol, [{dispatch, Dispatch}])]}}.
     
