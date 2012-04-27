@@ -1,6 +1,4 @@
-
 -module(impel_supervisor).
-
 -behaviour(supervisor).
 
 %% API

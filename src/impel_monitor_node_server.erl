@@ -72,5 +72,5 @@ nodeup(Node) ->
     end.
 
 is_impel_node(Node) ->
-    rpc:call(Node,code,which,[?MODULE]) =/= non_existing.
+    rpc:call(Node, code, which, [?MODULE]) =/= non_existing.
     

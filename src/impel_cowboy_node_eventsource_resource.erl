@@ -7,7 +7,7 @@
 -record(state, {handler, event_manager, timeout = 5000}).
 
 init({tcp, http}, R1, []) ->
-    impel_monitoring:increment_counter(connections),
+    impel_monitoring:increment_counter(eventsource_connections),
     {Path, R2} = cowboy_http_req:path_info(R1),
     EventManager = impel_hierarchy:event_manager(Path),
     Id = {emitter, self()},
@@ -33,10 +33,11 @@ handle_loop(Req, #state{event_manager = EventManager, handler = Handler, timeout
 	    case cowboy_http_req:chunk(io_lib:format("data: ~s~n~n", [jsx:to_json(Value, [])]), Req) of
 		{error, closed} ->
 		    impel_hierarchy_event:delete_handler(EventManager, Handler),
+		    impel_monitoring:increment_counter(eventsource_outbound_messages_error_closed),
 		    {ok, Req, State};
 		
 		ok ->
-		    impel_monitoring:increment_counter(outbound_messages),
+		    impel_monitoring:increment_counter(eventsource_outbound_messages_sent_ok),
 		    handle_loop(Req, State)
 	    end
 
@@ -44,13 +45,15 @@ handle_loop(Req, #state{event_manager = EventManager, handler = Handler, timeout
 	    case cowboy_http_req:chunk(io_lib:format("data: ~p~n~n", ["ping"]), Req) of
 		{error, closed} ->
 		    impel_hierarchy_event:delete_handler(EventManager, Handler),
+		    impel_monitoring:increment_counter(eventsource_outbound_ping_error_closed),
 		    {ok, Req, State};
 		
 		ok ->
+		    impel_monitoring:increment_counter(eventsource_outbound_ping_sent_ok),
 		    handle_loop(Req, State)
 	    end
     end.
 
 terminate(_Req, _State) ->
-    impel_monitoring:decrement_counter(connections),
+    impel_monitoring:decrement_counter(eventsource_connections),
     ok.

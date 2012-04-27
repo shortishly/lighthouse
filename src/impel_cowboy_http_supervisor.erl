@@ -12,12 +12,21 @@ start_link(P) ->
 init(_) ->
     Dispatch = [
 		{'_', [
+		       {[],
+			impel_cowboy_http_redirect_resource,
+			[{location, <<"/static/index.html">>},
+			 {status, 302}]},
+
 		       {[<<"static">>, '...'],
 			impel_cowboy_http_static_resource,
 			[{root, "static"}]},
 
 		       {[<<"monitoring">>],
 			impel_cowboy_monitoring_eventsource_resource,
+			[]},
+
+		       {[<<"event">>, <<"push">>],
+			impel_cowboy_event_push_resource,
 			[]},
 
 		       {[<<"admin">>],

@@ -9,15 +9,18 @@ add_handler(Manager, Handler) ->
     add_handler(Manager, Handler, []).
 
 add_handler(Manager, Handler, Args) ->
+    impel_monitoring:increment_counter(hierarchy_event_handlers),
     gen_event:add_handler(Manager, Handler, Args).
 
 delete_handler(Manager, Handler) ->
     delete_handler(Manager, Handler, []).
 
 delete_handler(Manager, Handler, Args) ->
+    impel_monitoring:decrement_counter(hierarchy_event_handlers),
     gen_event:delete_handler(Manager, Handler, Args).
 
 notify_update(Manager, Path, Value) ->
+    impel_monitoring:increment_counter(hierarchy_event_updates),
     notify(Manager, {update, Path, Value}).
 
 notify(Manager, Message) ->
