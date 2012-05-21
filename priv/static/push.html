@@ -18,23 +18,13 @@
 
   </head>
   <body class="container">
-    <div id="header" class="prepend-4 span-16 append-4 last">
-      <p>Lorem ipsum</p>
-      <ul>
-	<li><a href="hardware.html">hardware</a></li>
-	<li><a href="software.html">software</a></li>
-	<li><a href="music.html">music</a></li>
-	<li><a href="networks.html">networks</a></li>
-	<li><a href="security.html">security</a></li>
-	<li><a href="cloud.html">cloud</a></li>
-      </ul>
+    <div id="span-24">
+      <h1>Event Source</h1>
     </div>
-
-    <hr/>
     
     <div class="span-4">
       <ul id="navigation">
-	<li><a href="home.html">home</a></li>
+	<li><a href="index.html">home</a></li>
 	<li><a href="/nodes">nodes</a></li>
 	<li><a href="push.html">push</a></li>
 	<li><a href="listeners.html">listeners</a></li>
@@ -50,8 +40,26 @@
 	  cillum dolore eu fugiat nulla pariatur. Excepteur sint
 	  occaecat cupidatat non proident, sunt in culpa qui officia
 	  deserunt mollit anim id est laborum.</p>
+
+	<form action="/event/push" method="post">
+	  <label for="path">Path <em>*</em></label>
+	  <input id="path"
+		 name="path"
+		 title="The elements of a path are separated by the '/' character"
+		 autofocus
+		 required
+		 placeholder="a/b/c">
+	  <br>
+	  <label for="data">Data <em>*</em></label>
+	  <input id="data"
+		 name="data"
+		 required
+		 placeholder="testing">
+	  <br>
+	  <input type="submit" name="submit" value="Push"/>
+	</form>
 	
-	<p>Sed ut perspiciatis unde omnis iste natus error sit
+	<p contentEditable>Sed ut perspiciatis unde omnis iste natus error sit
 	  voluptatem accusantium doloremque laudantium, totam rem
 	  aperiam, eaque ipsa quae ab illo inventore veritatis et quasi
 	  architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam
@@ -85,6 +93,7 @@
     </div>
 
     <div id="monitoring" class="span-4 last">
+      <strong>Monitoring</strong>
       <dl>
 	<dt>Processes</dt>
 	<dd class="dynamicsparkline processes"></dd>
@@ -115,7 +124,7 @@
       </dl>
     </div>
 
-    <div id="footer" class="span-24">
+    <div class="span-24">
       The footer
     </div>
   </body>

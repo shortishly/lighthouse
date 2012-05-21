@@ -1,4 +1,4 @@
--module(impel_application).
+-module(sse_application).
 
 -behaviour(application).
 
@@ -10,7 +10,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    impel_supervisor:start_link().
+    sse_supervisor:start_link().
 
 stop(_State) ->
     ok.

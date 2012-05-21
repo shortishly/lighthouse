@@ -1,4 +1,4 @@
--module(impel_cowboy_http_redirect_resource).
+-module(sse_cowboy_http_redirect_resource).
 -behaviour(cowboy_http_handler).
 -export([init/3,
 	 handle/2,

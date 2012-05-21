@@ -1,15 +1,15 @@
 %%-*- mode: erlang -*-
-{application, impel,
+{application, sse,
  [
-  {description, "impel"},
+  {description, "Server-Sent Events"},
   {vsn, "0.0.1"},
   {registered, []},
   {applications, [
                   kernel,
                   stdlib,
 		  cowboy,
-		  zeroconf
+		  mdns
                  ]},
-  {mod, { impel_application, []}},
+  {mod, { sse_application, []}},
   {env, []}
  ]}.

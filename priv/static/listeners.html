@@ -1,0 +1,159 @@
+<html>
+  <head>
+    <title>Event Source</title>
+    
+    <link rel="stylesheet" href="/static/css/blueprint/screen.css" type="text/css" media="screen, projection" />
+    <link rel="stylesheet" href="/static/css/blueprint/print.css" type="text/css" media="print" /> 
+    <!--[if lt IE 8]>
+	<link rel="stylesheet" href="/static/css/blueprint/ie.css" type="text/css" media="screen, projection" />
+    <![endif]-->
+
+    <link rel="stylesheet" type="text/css" href="/static/css/body.css" />
+
+    <script type="text/javascript" src="/static/js/jquery-1.7.1.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.sparkline-1.6.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.eventsource.js"></script>
+    <script type="text/javascript" src="/static/js/impel.js"></script>
+
+  </head>
+  <body class="container">
+    <div id="span-24">
+      <h1>Event Source</h1>
+    </div>
+    
+    <div class="span-4">
+      <ul id="navigation">
+	<li><a href="index.html">home</a></li>
+	<li><a href="nodes.html">nodes</a></li>
+	<li><a href="push.html">push</a></li>
+	<li><a href="listeners.html">listeners</a></li>
+      </ul>
+    </div>
+
+    <div class="span-16">
+      <div class="span-16">
+	<form action="/event/push" method="post">
+	  <dl>
+	    <dt>Path</dt>
+	    <dd><input type="text" name="path"/></dd>
+	    <dt>Data</dt>
+	    <dd><input type="text" name="data"/></dd>
+	  </dl>
+	  <input type="submit" name="submit" value="Push"/>
+	</form>
+      </div>
+
+      <div class="span-16">
+	<div class="span-4">
+	  <dl class="ticker">
+	    <dt>Path</dt>
+	    <dd>/a/a/a</dd>
+	    <dt>Data</dt>
+	    <dd></dd>
+	  </dl>
+	</div>
+
+	<div class="span-4">
+	  <dl class="ticker">
+	    <dt>Path</dt>
+	    <dd>/a/a/b</dd>
+	    <dt>Data</dt>
+	    <dd></dd>
+	  </dl>
+	</div>
+
+	<div class="span-4">
+	  <dl class="ticker">
+	    <dt>Path</dt>
+	    <dd>/a/a/c</dd>
+	    <dt>Data</dt>
+	    <dd></dd>
+	  </dl>
+	</div>
+
+	<div class="span-4 last">
+	  <dl class="ticker">
+	    <dt>Path</dt>
+	    <dd>/a/a/d</dd>
+	    <dt>Data</dt>
+	    <dd></dd>
+	  </dl>
+	</div>
+      </div>
+
+      <div class="span-16">
+	<div class="span-4">
+	  <dl class="ticker">
+	    <dt>Path</dt>
+	    <dd>/a/b/a</dd>
+	    <dt>Data</dt>
+	    <dd></dd>
+	  </dl>
+	</div>
+
+	<div class="span-4">
+	  <dl class="ticker">
+	    <dt>Path</dt>
+	    <dd>/a/b/b</dd>
+	    <dt>Data</dt>
+	    <dd></dd>
+	  </dl>
+	</div>
+
+	<div class="span-4">
+	  <dl class="ticker">
+	    <dt>Path</dt>
+	    <dd>/a/b/c</dd>
+	    <dt>Data</dt>
+	    <dd></dd>
+	  </dl>
+	</div>
+
+	<div class="span-4 last">
+	  <dl class="ticker">
+	    <dt>Path</dt>
+	    <dd>/a/b/d</dd>
+	    <dt>Data</dt>
+	    <dd></dd>
+	  </dl>
+	</div>
+      </div>
+    </div>
+
+    <div id="monitoring" class="span-4 last">
+      <strong>Monitoring</strong>
+      <dl>
+	<dt>Processes</dt>
+	<dd class="dynamicsparkline processes"></dd>
+
+	<dt>Reductions</dt>
+	<dd class="dynamicsparkline reductions"></dd>
+
+	<dt>Bytes In</dt>
+	<dd class="dynamicsparkline input_bytes"></dd>
+
+	<dt>Bytes Out</dt>
+	<dd class="dynamicsparkline output_bytes"></dd>
+
+	<dt>Run Queue</dt>
+	<dd class="dynamicsparkline run_queue"></dd>
+
+	<dt>Context Switches</dt>
+	<dd class="dynamicsparkline context_switches"></dd>
+
+	<dt>Connections</dt>
+	<dd class="dynamicsparkline connections"></dd>
+
+	<dt>Inbound Messages</dt>
+	<dd class="dynamicsparkline inbound_messages"></dd>
+
+	<dt>Outbound Messages</dt>
+	<dd class="dynamicsparkline outbound_messages"></dd>
+      </dl>
+    </div>
+
+    <div class="span-24">
+      The footer
+    </div>
+  </body>
+</html>

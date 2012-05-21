@@ -1,4 +1,4 @@
--module(impel_cowboy_http_static_resource).
+-module(sse_cowboy_http_static_resource).
 -behaviour(cowboy_http_handler).
 -export([init/3,
 	 handle/2,
@@ -42,11 +42,14 @@ content_type(".html") ->
 content_type(".css") ->
     <<"text/css">>;
 content_type(".js") ->
-    <<"application/javascript">>.
+    <<"application/javascript">>;
+content_type(".png") ->
+    <<"image/png">>.
+
 
 
 priv() ->
-  case code:priv_dir(impel) of
+  case code:priv_dir(sse) of
     {error,_} -> "priv";
     Priv -> Priv
   end.

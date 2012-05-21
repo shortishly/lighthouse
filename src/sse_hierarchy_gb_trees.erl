@@ -1,4 +1,4 @@
--module(impel_hierarchy_gb_trees).
+-module(sse_hierarchy_gb_trees).
 -behaviour(gen_server).
 
 %% ------------------------------------------------------------------
@@ -23,7 +23,7 @@
 %% ------------------------------------------------------------------
 
 start_link() ->
-    gen_server:start_link({local, impel_hierarchy:name()}, ?MODULE, [], []).
+    gen_server:start_link({local, sse_hierarchy:name()}, ?MODULE, [], []).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
@@ -183,7 +183,7 @@ child(Key, V) when is_record(V, leaf) ->
      {updated, V#leaf.updated}].
 
 update(Path, Value, #state{root = Root} = S) ->
-    impel_hierarchy_event:notify_update(event_manager(Path, S), Path, Value),
+    sse_hierarchy_event:notify_update(event_manager(Path, S), Path, Value),
     S#state{root = update(Path, Root)}.
 
 update([K], #node{tree = Tree} = Node) ->

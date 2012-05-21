@@ -1,4 +1,4 @@
--module(impel_monitoring).
+-module(sse_monitoring).
 -export([increment_counter/1,
 	 decrement_counter/1,
 	 samples/0]).
@@ -13,5 +13,5 @@ samples() ->
     gen_server:call(server(), samples).
 
 server() ->
-    impel_monitoring_server.
+    sse_monitoring_server.
 

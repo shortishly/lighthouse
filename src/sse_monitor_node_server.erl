@@ -1,4 +1,4 @@
--module(impel_monitor_node_server).
+-module(sse_monitor_node_server).
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
 
@@ -64,13 +64,13 @@ code_change(_OldVsn, State, _Extra) ->
 %% ------------------------------------------------------------------
 
 nodeup(Node) ->
-    case is_impel_node(Node) of
+    case is_sse_node(Node) of
 	true ->
-	    impel_hierarchy:merge(rpc:call(Node, impel_hierarchy, hierarchy, []));
+	    sse_hierarchy:merge(rpc:call(Node, sse_hierarchy, hierarchy, []));
 	_ ->
 	    nop
     end.
 
-is_impel_node(Node) ->
+is_sse_node(Node) ->
     rpc:call(Node, code, which, [?MODULE]) =/= non_existing.
     

@@ -1,4 +1,4 @@
--module(impel_monitoring_server).
+-module(sse_monitoring_server).
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
 

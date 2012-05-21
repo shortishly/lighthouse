@@ -1,4 +1,4 @@
--module(impel_hierarchy_http_eventsource_emitter).
+-module(sse_hierarchy_http_eventsource_emitter).
 -behaviour(cowboy_http_handler).
 -export([init/3, handle/2, terminate/2]).
 
@@ -11,8 +11,8 @@ init({tcp, http}, R1, []) ->
 	    {shutdown, R3, undefined};
 
 	{Node, R2} ->
-	    Handler = {impel_hierarchy_http_eventsource_handler, {emitter, self()}},
-	    impel_hierarchy_event:add_handler(Handler, [{emitter, self()}]),
+	    Handler = {sse_hierarchy_http_eventsource_handler, {emitter, self()}},
+	    sse_hierarchy_event:add_handler(Handler, [{emitter, self()}]),
 	    {ok, R2, #state{node = Node, handler = Handler}}
     end.
 

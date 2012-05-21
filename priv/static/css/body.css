@@ -1,2 +1,69 @@
 body {
 }
+
+label em {
+    color: red;
+}
+
+#header {
+    background: rgb(220, 235, 221);
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+#header p {
+    display: inline;
+}
+
+#header ul {
+    background: rgb(160, 213, 214);
+    border: groove rgb(220, 235, 221);
+    border-radius: 4px;
+    list-style-type: none;
+    display: inline;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+#header ul li {
+    display: inline;
+}
+
+#header ul li a:link {
+    text-decoration: none;
+}
+
+#navigation {
+    list-style-type: none;
+}
+
+#navigation li {
+    border-color: black;
+    border-radius: 3px;
+    border-style: solid;
+    border-width: 2px;
+    box-shadow: 2px 2px gray;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+input:focus {
+    background: silver;
+    font-weight: bold;
+}
+
+#monitoring {
+    background: rgb(220, 235, 221);
+    border-radius: 3px;
+}
+
+#monitoring dl {
+    border: inset rgb(220, 235, 221);
+}
+
+#footer {
+    border-top-style: ridge;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    background: rgb(220, 235, 221);
+}

@@ -1,4 +1,4 @@
--module(impel_cowboy_node_resource).
+-module(sse_cowboy_node_resource).
 
 -export([init/3,
 	 rest_init/2,
@@ -17,7 +17,7 @@ rest_init(Req, _) ->
 
 resource_exists(R1, State) ->
     {Path, R2} = cowboy_http_req:path_info(R1),
-    case impel_hierarchy:children(Path) of
+    case sse_hierarchy:children(Path) of
 	{ok, Children} ->
 	    {true, R2, State#state{children = Children}};
 
@@ -32,4 +32,4 @@ content_types_provided(ReqData, State) ->
     {[{{<<"application">>, <<"atom+xml">>, []}, to_atom}], ReqData, State}.
 
 to_atom(ReqData, #state{children = Children} = State) ->
-    {impel_atom:to_atom(ReqData, State, Children), ReqData, State}.
+    {sse_atom:to_atom(ReqData, State, Children), ReqData, State}.

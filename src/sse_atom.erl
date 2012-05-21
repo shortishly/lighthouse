@@ -1,4 +1,4 @@
--module(impel_atom).
+-module(sse_atom).
 -export([to_atom/3]).
 -export([join/1]).
 
@@ -30,22 +30,22 @@ entry(ReqData, State, Entry) ->
 	       {Components, _} ->
 		   Components
 	   end,
-    entry(ReqData, State, Entry, Path, impel_hierarchy:type(Entry)).
+    entry(ReqData, State, Entry, Path, sse_hierarchy:type(Entry)).
 
 entry(ReqData, _, Entry, Path, branch) ->
-    Node = [join(Path ++ [impel_hierarchy:key(Entry)])],
+    Node = [join(Path ++ [sse_hierarchy:key(Entry)])],
     [<<"<entry>">>,
      title(Entry),
      io_lib:format("<link href=\"~s~s/node/~s\" type=\"application/atom+xml\"/>", ph(ReqData) ++ Node),
-     io_lib:format("<id>urn:tag:nodes.example.com,~s/~s</id>", [ymd(impel_hierarchy:created(Entry)), impel_hierarchy:key(Entry)]),
+     io_lib:format("<id>urn:tag:nodes.example.com,~s/~s</id>", [ymd(sse_hierarchy:created(Entry)), sse_hierarchy:key(Entry)]),
      updated(Entry),
      <<"</entry>">>];
 entry(ReqData, _, Entry, Path, leaf) ->
-    Node = [join(Path ++ [impel_hierarchy:key(Entry)])],
+    Node = [join(Path ++ [sse_hierarchy:key(Entry)])],
     [<<"<entry>">>,
      title(Entry),
      io_lib:format("<link href=\"~s~s/es/~s\" type=\"text/event-stream\"/>", ph(ReqData) ++ Node),
-     io_lib:format("<id>urn:tag:nodes.example.com,~s/~s</id>", [ymd(impel_hierarchy:created(Entry)), Node]),
+     io_lib:format("<id>urn:tag:nodes.example.com,~s/~s</id>", [ymd(sse_hierarchy:created(Entry)), Node]),
      updated(Entry),
      <<"</entry>">>].
 
@@ -68,11 +68,11 @@ ph(ReqData) ->
     [protocol(ReqData), host(ReqData)].
 
 title(L) ->
-    io_lib:format("<title>~s</title>", [impel_hierarchy:key(L)]).
+    io_lib:format("<title>~s</title>", [sse_hierarchy:key(L)]).
 
 updated(L) ->
     [<<"<updated>">>,
-     rfc3339(impel_hierarchy:updated(L)),
+     rfc3339(sse_hierarchy:updated(L)),
      <<"</updated>">>].
 
 

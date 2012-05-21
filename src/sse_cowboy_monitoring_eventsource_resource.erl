@@ -1,4 +1,4 @@
--module(impel_cowboy_monitoring_eventsource_resource).
+-module(sse_cowboy_monitoring_eventsource_resource).
 -behaviour(cowboy_http_handler).
 -export([init/3,
 	 handle/2,
@@ -36,5 +36,5 @@ terminate(_Req, _State) ->
     ok.
 
 monitor() ->
-    [{monitoring, impel_monitoring:samples()}].
+    [{monitoring, sse_monitoring:samples()}].
 

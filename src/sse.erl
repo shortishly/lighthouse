@@ -1,11 +1,11 @@
--module(impel).
+-module(sse).
 -export([start/0,
 	make/0]).
 
 start() ->
     ok = ensure(cowboy),
-    ok = ensure(zeroconf),
-    ok = application:start(impel).
+    ok = ensure(mdns),
+    ok = application:start(sse).
 
 ensure(Application) ->
     ensure_started(application:start(Application)).

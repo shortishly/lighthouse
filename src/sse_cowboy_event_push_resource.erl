@@ -1,4 +1,4 @@
--module(impel_cowboy_event_push_resource).
+-module(sse_cowboy_event_push_resource).
 -export([init/3,
 	 rest_init/2,
 	 allowed_methods/2,
@@ -35,7 +35,7 @@ malformed_request(R1, State) ->
     end.
 
 process_post(R, #state{path = Path, data = Data} = S) ->
-    impel_hierarchy:update(binary:split(Path, <<"/">>, [global]), Data),
+    sse_hierarchy:update(binary:split(Path, <<"/">>, [global]), Data),
     {true, R,S}.
 
 

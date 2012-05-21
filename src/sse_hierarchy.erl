@@ -1,4 +1,4 @@
--module(impel_hierarchy).
+-module(sse_hierarchy).
 
 %%
 %% external API

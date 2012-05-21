@@ -1,4 +1,4 @@
--module(impel_cowboy_http_supervisor).
+-module(sse_cowboy_http_supervisor).
 -behaviour(supervisor).
 -export([start_link/0, init/1]).
 
@@ -13,36 +13,36 @@ init(_) ->
     Dispatch = [
 		{'_', [
 		       {[],
-			impel_cowboy_http_redirect_resource,
+			sse_cowboy_http_redirect_resource,
 			[{location, <<"/static/index.html">>},
 			 {status, 302}]},
 
 		       {[<<"static">>, '...'],
-			impel_cowboy_http_static_resource,
+			sse_cowboy_http_static_resource,
 			[{root, "static"}]},
 
 		       {[<<"monitoring">>],
-			impel_cowboy_monitoring_eventsource_resource,
+			sse_cowboy_monitoring_eventsource_resource,
 			[]},
 
 		       {[<<"event">>, <<"push">>],
-			impel_cowboy_event_push_resource,
+			sse_cowboy_event_push_resource,
 			[]},
 
 		       {[<<"admin">>],
-			impel_cowboy_admin_resource,
+			sse_cowboy_admin_resource,
 			[]},
 
 		       {[<<"nodes">>],
-			impel_cowboy_nodes_resource,
+			sse_cowboy_nodes_resource,
 			[]},
 
 		       {[<<"node">>, '...'], 
-			impel_cowboy_node_resource, 
+			sse_cowboy_node_resource, 
 			[]},
 
 		       {[<<"es">>, '...'], 
-			impel_cowboy_node_eventsource_resource, 
+			sse_cowboy_node_eventsource_resource, 
 			[]}
 		      ]}
 	       ],

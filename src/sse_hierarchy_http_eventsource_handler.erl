@@ -1,4 +1,4 @@
--module(impel_hierarchy_http_eventsource_handler).
+-module(sse_hierarchy_http_eventsource_handler).
 -behaviour(gen_event).
 -export([init/1,
 	 terminate/2,
