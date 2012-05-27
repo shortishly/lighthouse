@@ -5,7 +5,8 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([start_link/0]).
+-export([start_link/0,
+	 start_link/1]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -23,7 +24,10 @@
 %% ------------------------------------------------------------------
 
 start_link() ->
-    gen_server:start_link({local, sse_hierarchy:name()}, ?MODULE, [], []).
+    start_link([]).
+
+start_link(Parameters) ->
+    gen_server:start_link({local, sse_hierarchy:name()}, ?MODULE, Parameters, []).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
@@ -31,14 +35,21 @@ start_link() ->
 
 -record(node, {tree = gb_trees:empty() :: gb_trees:tree(),
 	       created = calendar:universal_time() :: calendar:datetime(),
-	       updated = calendar:universal_time() :: calendar:datetime()}).
+	       updated = calendar:universal_time() :: calendar:datetime(),
+	       samples,
+	       id = 1,
+	       values = []}).
 
 -record(leaf, {created = calendar:universal_time() :: calendar:datetime(),
-	       updated = calendar:universal_time() :: calendar:datetime()}).
+	       updated = calendar:universal_time() :: calendar:datetime(),
+	       samples,
+	       id = 1,
+	       values = []}).
 
 -record(event_manager, {hash :: number(), pid :: pid()}).
 
 -record(state, {root = #node{},
+		samples = 36,
 		event_managers = ets:new(event_managers, [set,
 							  protected,
 							  {keypos, 2},
@@ -51,6 +62,10 @@ init(Args) ->
     process_flag(trap_exit, true),
     init(Args, #state{}).
 
+init([{samples, Samples} | T], State) ->
+    init(T, State#state{samples = Samples});
+init([{included_applications, _} | T], State) ->
+    init(T, State);
 init([], State) ->
     {ok, State}.
 
@@ -62,6 +77,9 @@ handle_call({event_manager, Path}, _, State) ->
 
 handle_call({update, Path, Value}, _, State) ->
     {reply, ok, update(Path, Value, State)};
+
+handle_call({values, Path}, Recipient, State) ->
+    reply(Recipient, fun() -> values(Path, State) end, State);
 
 handle_call(hierarchy, _, #state{root = Root} = State) ->
     {reply, #state{root = Root}, State};
@@ -171,43 +189,74 @@ children({Key, V, Iterator}) ->
 children(none) ->
     [].
 
-child(Key, V) when is_record(V, node) ->
+child(Key, #node{created = Created, updated = Updated}) ->
     [{type, branch},
      {key, Key},
-     {created, V#node.created},
-     {updated, V#node.updated}];
-child(Key, V) when is_record(V, leaf) ->
+     {created, Created},
+     {updated, Updated}];
+child(Key, #leaf{created = Created, updated = Updated}) ->
     [{type, leaf},
      {key, Key},
-     {created, V#leaf.created},
-     {updated, V#leaf.updated}].
+     {created, Created},
+     {updated, Updated}].
 
-update(Path, Value, #state{root = Root} = S) ->
-    sse_hierarchy_event:notify_update(event_manager(Path, S), Path, Value),
-    S#state{root = update(Path, Root)}.
 
-update([K], #node{tree = Tree} = Node) ->
+values(Path, #state{root = Root}) ->
+    values(Path, Root);
+values([K], #node{tree = Tree}) ->
+    case gb_trees:lookup(K, Tree) of
+	{value, #leaf{values = Values}} ->
+	    {ok, Values};
+	{value, #node{values = Values}} ->
+	    {ok, Values};
+	none ->
+	    {error, not_found}
+    end;
+values([H | T], #node{tree = Tree}) ->
+    case gb_trees:lookup(H, Tree) of
+	{value, V} ->
+	    values(T, V);
+	none ->
+	    {error, not_found}
+    end.
+
+
+
+update(Path, Value, #state{root = Root, samples = Samples} = S) ->
+    S#state{root = update(Path, Root, event_manager(Path, S), Path, Value, Samples)}.
+
+update([K], #node{tree = Tree} = Node, EventManager, Path, Value, Samples) ->
     Updated = calendar:universal_time(),
     case gb_trees:lookup(K, Tree) of
-	{value, #leaf{} = Existing} ->
-	    Node#node{tree = gb_trees:enter(K, Existing#leaf{updated = Updated}, Tree), updated = Updated};
+	{value, #leaf{id = Id, values = Values, samples = N} = Existing} ->
+	    sse_hierarchy_event:notify_update(EventManager, Path, Id, Value),
+	    Node#node{tree = gb_trees:enter(K, Existing#leaf{updated = Updated,
+							     values = [{Id, Value} | lists:sublist(Values, N)],
+							     id = Id + 1}, Tree), updated = Updated};
 
-	{value, #node{} = Existing} ->
-	    Node#node{tree = gb_trees:enter(K, Existing#node{updated = Updated}, Tree)};
+	{value, #node{id = Id, values = Values, samples = N} = Existing} ->
+	    sse_hierarchy_event:notify_update(EventManager, Path, Id, Value),
+	    Node#node{tree = gb_trees:enter(K, Existing#node{updated = Updated,
+							     values = [{Id, Value} | lists:sublist(Values, N)],
+							     id = Id + 1}, Tree)};
 
 	none ->
-	    Node#node{tree = gb_trees:enter(K, #leaf{}, Tree), updated = Updated}
+	    Id = 1,
+	    sse_hierarchy_event:notify_update(EventManager, Path, Id, Value),
+	    Node#node{tree = gb_trees:enter(K, #leaf{id = Id + 1,
+						     values = [{Id, Value}],
+						     samples = Samples}, Tree), updated = Updated}
     end;
-update([H | T], #node{tree = Tree} = Node) ->
+update([H | T], #node{tree = Tree} = Node, EventManager, Path, Value, Samples) ->
     case gb_trees:lookup(H, Tree) of
 	{value, #node{} = SubNode} ->
-	    Node#node{tree = gb_trees:update(H, update(T, SubNode), Tree)};
+	    Node#node{tree = gb_trees:update(H, update(T, SubNode, EventManager, Path, Value, Samples), Tree)};
 
 	{value, #leaf{created = Created}} ->
-	    Node#node{tree = gb_trees:update(H, update(T, #node{created = Created}), Tree)};
+	    Node#node{tree = gb_trees:update(H, update(T, #node{created = Created, samples = Samples}, EventManager, Path, Value, Samples), Tree)};
 
 	none ->
-	    Node#node{tree = gb_trees:insert(H, update(T, #node{}), Tree)}
+	    Node#node{tree = gb_trees:insert(H, update(T, #node{samples = Samples}, EventManager, Path, Value, Samples), Tree)}
     end.
 
 delete(Path, #state{root = R1, event_managers = EventManagers} = S) ->

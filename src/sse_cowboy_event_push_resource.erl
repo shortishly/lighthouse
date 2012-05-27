@@ -8,7 +8,7 @@
 	 malformed_request/2]).
 
 
--record(state, {path, data}).
+-record(state, {path, value}).
 
 init({tcp, http}, _, _) ->
     {upgrade, protocol, cowboy_http_rest}.
@@ -27,15 +27,33 @@ post_is_create(R, S) ->
 
 malformed_request(R1, State) ->
     {Bindings, R2} = cowboy_http_req:body_qs(R1),
-    case {proplists:get_value(<<"path">>, Bindings), proplists:get_value(<<"data">>, Bindings)} of
-	{Path, Data} when Path =/= undefined andalso Data =/= undefined ->
-	    {false, R2, State#state{path = Path, data = Data}};
-	_ ->
-	    {true, R2, State}
+    case {path(Bindings), data(Bindings), event(Bindings)} of
+	{undefined, _, _} ->
+	    {true, R2, State};
+
+	{_, undefined, undefined} ->
+	    {true, R2, State};
+
+	{Path, Data, undefined} ->
+	    {false, R2, State#state{path = Path, value = [{data, Data}]}};
+
+	{Path, undefined, Event} ->
+	    {false, R2, State#state{path = Path, value = [{event, Event}]}};
+
+	{Path, Data, Event} ->
+	    {false, R2, State#state{path = Path, value = [{data, Data}, {event, Event}]}}
     end.
 
-process_post(R, #state{path = Path, data = Data} = S) ->
-    sse_hierarchy:update(binary:split(Path, <<"/">>, [global]), Data),
+process_post(R, #state{path = Path, value = Value} = S) ->
+    sse_hierarchy:update(binary:split(Path, <<"/">>, [global]), Value),
     {true, R,S}.
 
+path(Bindings) ->
+    proplists:get_value(<<"path">>, Bindings).
 
+data(Bindings) ->
+    proplists:get_value(<<"data">>, Bindings).
+
+event(Bindings) ->
+    proplists:get_value(<<"event">>, Bindings).
+    

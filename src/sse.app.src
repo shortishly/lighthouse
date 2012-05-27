@@ -11,5 +11,7 @@
 		  mdns
                  ]},
   {mod, { sse_application, []}},
-  {env, []}
+  {env, [
+	 {samples, 12}
+	]}
  ]}.

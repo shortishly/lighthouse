@@ -13,6 +13,7 @@
 	 created/1,
 	 updated/1,
 	 key/1,
+	 values/1,
 	 stop/0]).
 
 %%
@@ -50,6 +51,10 @@ delete(Path) ->
 -spec event_manager(path()) -> {ok, pid()} | {error, term()}.
 event_manager(Path) ->
     gen_server:call(name(), {event_manager, Path}).
+
+-spec values(path()) -> {ok, term()} | {error, term()}.
+values(Path) ->
+    gen_server:call(name(), {values, Path}).
 
 hierarchy() ->
     gen_server:call(name(), hierarchy).

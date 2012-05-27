@@ -10,7 +10,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    sse_supervisor:start_link().
+    sse_supervisor:start_link([application:get_all_env()]).
 
 stop(_State) ->
     ok.
