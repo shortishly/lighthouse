@@ -1,0 +1,61 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+
+main(Arguments) ->
+    Parameters = parameters(Arguments),
+    case check(Parameters) of
+	true ->
+	    application:start(inets),
+	    listen(Parameters);
+	_ ->
+	    usage()
+    end.
+
+listen(Parameters) ->
+    {ok, RequestId} = httpc:request(get, request(Parameters), [], [{sync, false}, {stream, self}]),
+    loop(RequestId).
+
+loop(RequestId) ->
+    receive
+	{http, {RequestId, stream_start, _}} ->
+	    loop(RequestId);
+
+	{http, {RequestId, stream, Data}} ->
+	    io:put_chars(unicode:characters_to_list(Data)),
+	    loop(RequestId);
+
+	{http, {RequestId, stream_end, _}} ->
+	    ok
+    end.
+
+
+parameters(Parameters) ->
+    parameters(Parameters, []).
+
+parameters([[$-, $- | Option], Value | T], Parameters) ->
+    parameters(T, [{Option, Value} | Parameters]);
+parameters([], P) ->
+    P;
+parameters(_, _) ->
+    usage().
+
+check(Parameters) ->
+    proplists:is_defined("path", Parameters).
+
+usage() ->
+    io:format("Usage: ~s --event event --path path~n", [escript:script_name()]),
+    halt(1).
+
+url(Parameters) ->
+    "http://localhost:8080/es/" ++ proplists:get_value("path", Parameters).
+
+headers(Parameters) ->
+    case proplists:get_value("event", Parameters) of
+	undefined ->
+	    [];
+	EventId ->
+	    [{"Last-Event-ID", EventId}]
+    end.
+
+request(Parameters) ->
+    {url(Parameters), headers(Parameters)}.
