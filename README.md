@@ -27,9 +27,15 @@ a suitable event source.
 Quick Start
 -----------
 
+### Starting the server
+
 To start the server:
 
+```sh
 (sse home)/start.sh
+```
+
+### Pushing some example data
 
 In this example, we will imagine a collection of temperature sensors
 that are in located in a house.  To push an event to the server, we
@@ -37,15 +43,21 @@ need 3 things: the **topic**, some **data** and an **event**. In this
 example we will use the topic of **floors/ground/rooms/kitchen**, an
 event of **temperature**, and data of **21**:
 
+```sh
 (sse home)/sse-push --data 21 --event temperature --topic floors/ground/rooms/kitchen
+```
 
 For the lounge:
 
+```sh
 (sse home)/sse-push --data 23 --event temperature --topic floors/ground/rooms/lounge
+```
 
 For the 1st floor master bedroom:
 
+```sh
 (sse home)/sse-push --data 22 --event temperature --topic floors/first/rooms/master-bedroom
+```
 
 You can use your browser to look at the topic structure that has been
 created, using the following URL:
@@ -58,15 +70,18 @@ navigate and view an event stream.
 
 To listen to events being pushed out by the server:
 
+```sh
 (sse home)/sse-listen --topic floors/ground/rooms/kitchen
+```
 
 The above command will continue to display events that are pushed to
 the topic **floors/ground/rooms/kitchen** until you quit by pressing
 'Ctrl-C'. You can test this by running the following command in
 another terminal window:
 
+```sh
 (sse home)/sse-push --data 20 --event temperature --topic floors/ground/rooms/kitchen
-
+```
 
 
 sse-push
