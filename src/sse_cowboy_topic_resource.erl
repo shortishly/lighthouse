@@ -12,31 +12,38 @@
 %% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
--module(sse_cowboy_http_redirect_resource).
--behaviour(cowboy_http_handler).
+-module(sse_cowboy_topic_resource).
+
 -export([init/3,
-	 handle/2,
-	 terminate/2]).
+	 rest_init/2,
+	 resource_exists/2,
+	 content_types_provided/2,
+	 to_atom/2]).
 
--record(state, {location, status}).
-
-init({tcp, http} = Protocol, Req, Args) ->
-    init(Protocol, Req, Args, #state{}).
-
-init(Protocol, Req, [{location, Location} | T], State) ->
-    init(Protocol, Req, T, State#state{location = Location});
-init(Protocol, Req, [{status, Status} | T], State) ->
-    init(Protocol, Req, T, State#state{status = Status});
-init(_, Req, [], State) ->
-    {ok, Req, State}.
+-record(state, {children}).
 
 
-handle(Req, #state{location = Location, status = Status} = State) ->
-    {ok, Req2} = cowboy_http_req:reply(Status, [{<<"Location">>, Location}], [], Req),
-    {ok, Req2, State}.
+init({tcp, http}, _, []) ->
+    {upgrade, protocol, cowboy_http_rest}.
 
+rest_init(Req, _) ->
+    {ok, Req, #state{}}.
 
-terminate(_, _) ->
-    ok.
+resource_exists(R1, State) ->
+    {Path, R2} = cowboy_http_req:path_info(R1),
+    case sse_hierarchy:children(Path) of
+	{ok, Children} ->
+	    {true, R2, State#state{children = Children}};
 
+	{error, {is_a_leaf, _, _}} ->
+	    {true, R2, State#state{children = []}};
 
+	{error, not_found} ->
+	    {false, R2, State}
+    end.
+
+content_types_provided(ReqData, State) ->
+    {[{{<<"application">>, <<"atom+xml">>, []}, to_atom}], ReqData, State}.
+
+to_atom(ReqData, #state{children = Children} = State) ->
+    {sse_atom:to_atom(ReqData, State, Children), ReqData, State}.

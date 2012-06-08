@@ -40,17 +40,17 @@ parameters(_, _) ->
     usage().
 
 check(Parameters) ->
-    proplists:is_defined("path", Parameters).
+    proplists:is_defined("topic", Parameters).
 
 usage() ->
-    io:format("Usage: ~s --event event --path path~n", [escript:script_name()]),
+    io:format("Usage: ~s --topic topic [--last event_id]~n", [escript:script_name()]),
     halt(1).
 
 url(Parameters) ->
-    "http://localhost:8080/es/" ++ proplists:get_value("path", Parameters).
+    "http://localhost:8080/es/" ++ proplists:get_value("topic", Parameters).
 
 headers(Parameters) ->
-    case proplists:get_value("event", Parameters) of
+    case proplists:get_value("last", Parameters) of
 	undefined ->
 	    [];
 	EventId ->

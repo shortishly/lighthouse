@@ -1,4 +1,18 @@
 %%-*- mode: erlang -*-
+%% Copyright (c) 2012, Peter Morgan <peter.james.morgan@gmail.com>
+%%
+%% Permission to use, copy, modify, and/or distribute this software for any
+%% purpose with or without fee is hereby granted, provided that the above
+%% copyright notice and this permission notice appear in all copies.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+%% WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+%% MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+%% ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+%% WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+%%
 {application, sse,
  [
   {description, "Server-Sent Events"},
@@ -12,6 +26,52 @@
                  ]},
   {mod, { sse_application, []}},
   {env, [
-	 {samples, 12}
+	 {monitoring, [
+		       {topic, [<<"sse">>, <<"monitoring">>]},
+		       {event, <<"message">>},
+		       {interval, 3000},
+		       {n, 36}
+		      ]},
+	 {samples, 12},
+	 {tcp_transport, [
+			  {port, 8080},
+			  {max_connections, 1000000}
+			 ]},
+	 {http_protocol, [
+			  {dispatch, [
+				      {'_', [
+					     {[],
+					      sse_cowboy_http_redirect_resource,
+					      [{location, <<"/static/index.html">>},
+					       {status, 302}]},
+
+					     {[<<"static">>, '...'],
+					      cowboy_http_static, [
+								   {directory, {priv_dir, sse, [<<"static">>]}},
+								   {mimetypes, [
+										{<<".html">>, [<<"text/html">>]},
+										{<<".png">>, [<<"image/png">>]},
+										{<<".css">>, [<<"text/css">>]},
+										{<<".js">>, [<<"application/javascript">>]}
+									       ]}]},
+
+					     {[<<"event">>, <<"push">>],
+					      sse_cowboy_event_push_resource,
+					      []},
+					     
+					     {[<<"topics">>],
+					      sse_cowboy_topics_resource,
+					      []},
+					     
+					     {[<<"topic">>, '...'], 
+					      sse_cowboy_topic_resource, 
+					      []},
+					     
+					     {[<<"es">>, '...'], 
+					      sse_cowboy_topic_eventsource_resource, 
+					      [{timeout, 5000}]}
+					    ]}
+				     ]}
+			 ]}
 	]}
  ]}.

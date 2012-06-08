@@ -1,3 +1,17 @@
+%% Copyright (c) 2012, Peter Morgan <peter.james.morgan@gmail.com>
+%%
+%% Permission to use, copy, modify, and/or distribute this software for any
+%% purpose with or without fee is hereby granted, provided that the above
+%% copyright notice and this permission notice appear in all copies.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+%% WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+%% MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+%% ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+%% WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 -module(sse_monitoring_server).
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
@@ -6,7 +20,8 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
--export([start_link/0]).
+-export([start_link/0,
+	 start_link/1]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -24,7 +39,10 @@
 %% ------------------------------------------------------------------
 
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    start_link([]).
+
+start_link(Args) ->
+    gen_server:start_link({local, ?SERVER}, ?MODULE, Args, []).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Definitions
@@ -34,17 +52,33 @@ start_link() ->
 		samples=[],
 		counters=dict:new(),
 		n=36,
-		timer
+		timer,
+		topic,
+		event
 	       }).
 
 init(Args) ->
     process_flag(trap_exit, true),
     init(Args, #state{}).
 
-init([], #state{interval=Interval} = S) ->
+init([{monitoring, Parameters} | T], S) ->
+    init(T, parameters(Parameters, S));
+init([{_, _} | T], S) ->
+    init(T, S);
+init([], #state{interval = Interval} = S) ->
     {ok, Timer} = timer:send_interval(Interval, sample),
     {ok, update(S#state{timer = Timer})}.
 
+parameters([{topic, Topic} | T], S) ->
+    parameters(T, S#state{topic = Topic});
+parameters([{event, Event} | T], S) ->
+    parameters(T, S#state{event = Event});
+parameters([{interval, Interval} | T], S) ->
+    parameters(T, S#state{interval = Interval});
+parameters([{n, N} | T], S) ->
+    parameters(T, S#state{n = N});
+parameters([], S) ->
+    S.
 
 handle_call(samples, _, #state{samples = Samples} = State) ->
     {reply, Samples, State}.
@@ -55,8 +89,10 @@ handle_cast({increment_counter, Counter}, #state{counters = Counters} = State) -
 handle_cast({decrement_counter, Counter}, #state{counters = Counters} = State) ->
     {noreply, State#state{counters = dict:update_counter(Counter, -1, Counters)}}.
 
-handle_info(sample, State) ->
-    {noreply, update(State)}.
+handle_info(sample, #state{topic = Topic, event = Event} = S1) ->
+    S2 = #state{samples = Samples} = update(S1),
+    sse_hierarchy:update(Topic, [{data, [{monitoring, Samples}]}, {event, Event}]),
+    {noreply, S2}.
 
 terminate(_, #state{timer = Timer}) ->
     {ok, cancel} = timer:cancel(Timer),

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Event Source</title>
+    <title>Server-Sent Events</title>
     
     <link rel="stylesheet" href="/static/css/blueprint/screen.css" type="text/css" media="screen, projection" />
     <link rel="stylesheet" href="/static/css/blueprint/print.css" type="text/css" media="print" /> 
@@ -14,74 +14,47 @@
     <script type="text/javascript" src="/static/js/jquery-1.7.1.js"></script>
     <script type="text/javascript" src="/static/js/jquery.sparkline-1.6.js"></script>
     <script type="text/javascript" src="/static/js/jquery.eventsource.js"></script>
-    <script type="text/javascript" src="/static/js/impel.js"></script>
+    <script type="text/javascript" src="/static/js/sse/monitoring.js"></script>
 
   </head>
   <body class="container">
     <div id="header" class="prepend-4 span-16 append-4 last">
-      <p>Lorem ipsum</p>
-      <ul>
-	<li><a href="hardware.html">hardware</a></li>
-	<li><a href="software.html">software</a></li>
-	<li><a href="music.html">music</a></li>
-	<li><a href="networks.html">networks</a></li>
-	<li><a href="security.html">security</a></li>
-	<li><a href="cloud.html">cloud</a></li>
-      </ul>
+      <header class="mast">
+	<h1>Server-Sent Events</h1>
+      </header>
     </div>
 
-    <hr/>
-    
     <div class="span-4">
       <ul id="navigation">
-	<li><a href="home.html">home</a></li>
-	<li><a href="/nodes">nodes</a></li>
-	<li><a href="push.html">push</a></li>
-	<li><a href="listeners.html">listeners</a></li>
+	<li><a href="/topics">topics</a></li>
       </ul>
     </div>
 
     <div class="span-16">
-	<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-	  sed do eiusmod tempor incididunt ut labore et dolore magna
-	  aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-	  ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
-	  aute irure dolor in reprehenderit in voluptate velit esse
-	  cillum dolore eu fugiat nulla pariatur. Excepteur sint
-	  occaecat cupidatat non proident, sunt in culpa qui officia
-	  deserunt mollit anim id est laborum.</p>
-	
-	<p>Sed ut perspiciatis unde omnis iste natus error sit
-	  voluptatem accusantium doloremque laudantium, totam rem
-	  aperiam, eaque ipsa quae ab illo inventore veritatis et quasi
-	  architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam
-	  voluptatem quia voluptas sit aspernatur aut odit aut fugit,
-	  sed quia consequuntur magni dolores eos qui ratione voluptatem
-	  sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum
-	  quia dolor sit amet, consectetur, adipisci velit, sed quia non
-	  numquam eius modi tempora incidunt ut labore et dolore magnam
-	  aliquam quaerat voluptatem. Ut enim ad minima veniam, quis
-	  nostrum exercitationem ullam corporis suscipit laboriosam,
-	  nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum
-	  iure reprehenderit qui in ea voluptate velit esse quam nihil
-	  molestiae consequatur, vel illum qui dolorem eum fugiat quo
-	  voluptas nulla pariatur?</p>
-	
-	<p>At vero eos et accusamus et iusto odio dignissimos ducimus
-	  qui blanditiis praesentium voluptatum deleniti atque corrupti
-	  quos dolores et quas molestias excepturi sint occaecati
-	  cupiditate non provident, similique sunt in culpa qui officia
-	  deserunt mollitia animi, id est laborum et dolorum fuga. Et
-	  harum quidem rerum facilis est et expedita distinctio. Nam
-	  libero tempore, cum soluta nobis est eligendi optio cumque
-	  nihil impedit quo minus id quod maxime placeat facere
-	  possimus, omnis voluptas assumenda est, omnis dolor
-	  repellendus. Temporibus autem quibusdam et aut officiis
-	  debitis aut rerum necessitatibus saepe eveniet ut et
-	  voluptates repudiandae sint et molestiae non
-	  recusandae. Itaque earum rerum hic tenetur a sapiente
-	  delectus, ut aut reiciendis voluptatibus maiores alias
-	  consequatur aut perferendis doloribus asperiores repellat.</p>
+      <p>Push an event:
+      </p>
+      <form action="/event/push" method="post">
+	<label for="path">Topic <em>*</em></label>
+	<input id="topic"
+	       name="topic"
+	       title="The elements of a topic are separated by the '/' character"
+	       autofocus
+	       required
+	       placeholder="a/b/c">
+	<br>
+	<label for="data">Data <em>*</em></label>
+	<input id="data"
+	       name="data"
+	       required
+	       placeholder="data">
+	<br>
+	<label for="event">Event <em>*</em></label>
+	<input id="event"
+	       name="event"
+	       placeholder="message">
+	<br>
+	<input type="submit" name="submit" value="Push"/>
+      </form>
     </div>
 
     <div id="monitoring" class="span-4 last">
@@ -104,19 +77,21 @@
 	<dt>Context Switches</dt>
 	<dd class="dynamicsparkline context_switches"></dd>
 
-	<dt>Connections</dt>
-	<dd class="dynamicsparkline connections"></dd>
+	<dt>Event Handlers</dt>
+	<dd class="dynamicsparkline hierarchy_event_handlers"></dd>
 
-	<dt>Inbound Messages</dt>
-	<dd class="dynamicsparkline inbound_messages"></dd>
+	<dt>Event Updates</dt>
+	<dd class="dynamicsparkline hierarchy_event_updates"></dd>
+
+	<dt>Connections</dt>
+	<dd class="dynamicsparkline eventsource_connections"></dd>
 
 	<dt>Outbound Messages</dt>
-	<dd class="dynamicsparkline outbound_messages"></dd>
-      </dl>
-    </div>
+	<dd class="dynamicsparkline eventsource_outbound_messages_sent_ok"></dd>
 
-    <div id="footer" class="span-24">
-      The footer
+	<dt>Outbound Pings</dt>
+	<dd class="dynamicsparkline eventsource_outbound_ping_sent_ok"></dd>
+      </dl>
     </div>
   </body>
 </html>

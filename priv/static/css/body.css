@@ -1,4 +1,10 @@
-body {
+html, body {
+    background: #f0f0f0;
+}
+
+h1 {
+    font-weight: 400;
+    margin: 0;
 }
 
 label em {
@@ -9,6 +15,8 @@ label em {
     background: rgb(220, 235, 221);
     padding-top: 0.5em;
     padding-bottom: 0.5em;
+    border-radius: 5px;
+    margin-bottom: 1em;
 }
 
 #header p {
@@ -29,7 +37,7 @@ label em {
     display: inline;
 }
 
-#header ul li a:link {
+#navigation li a:link {
     text-decoration: none;
 }
 
@@ -38,11 +46,6 @@ label em {
 }
 
 #navigation li {
-    border-color: black;
-    border-radius: 3px;
-    border-style: solid;
-    border-width: 2px;
-    box-shadow: 2px 2px gray;
     margin-top: 10px;
     margin-bottom: 15px;
 }
@@ -53,13 +56,9 @@ input:focus {
 }
 
 #monitoring {
-    background: rgb(220, 235, 221);
     border-radius: 3px;
 }
 
-#monitoring dl {
-    border: inset rgb(220, 235, 221);
-}
 
 #footer {
     border-top-style: ridge;

@@ -24,10 +24,10 @@ parameters(_, _) ->
 check(Parameters) ->
     lists:foldl(fun(Parameter, A) ->
 			A andalso proplists:is_defined(Parameter, Parameters)
-		end, true, ["data", "event", "path"]).
+		end, true, ["data", "event", "topic"]).
 
 usage() ->
-    io:format("Usage: ~s --data data --event event --path path~n", [escript:script_name()]),
+    io:format("Usage: ~s --topic topic --event event --data data~n", [escript:script_name()]),
     halt(1).
     
 

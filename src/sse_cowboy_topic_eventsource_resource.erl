@@ -1,20 +1,38 @@
--module(sse_cowboy_node_eventsource_resource).
+%% Copyright (c) 2012, Peter Morgan <peter.james.morgan@gmail.com>
+%%
+%% Permission to use, copy, modify, and/or distribute this software for any
+%% purpose with or without fee is hereby granted, provided that the above
+%% copyright notice and this permission notice appear in all copies.
+%%
+%% THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+%% WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+%% MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+%% ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+%% WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+%% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+%% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+-module(sse_cowboy_topic_eventsource_resource).
 -behaviour(cowboy_http_handler).
 -export([init/3,
 	 handle/2,
 	 terminate/2]).
 
--record(state, {path, handler, event_manager, timeout = 5000, id = 1}).
+-record(state, {path, handler, event_manager, timeout, id = 1}).
 
-init({tcp, http}, R1, []) ->
+init({tcp, http} = Protocol, Req, Args) ->
+    init(Protocol, Req, Args, #state{}).
+
+init(Protocol, Req, [{timeout, Timeout} | T], State) ->
+    init(Protocol, Req, T, State#state{timeout = Timeout});
+init(_, R1, [], State) ->
     sse_monitoring:increment_counter(eventsource_connections),
     {Path, R2} = cowboy_http_req:path_info(R1),
-    error_logger:info_report([{path, Path}]),
     EventManager = sse_hierarchy:event_manager(Path),
     Id = {emitter, self()},
     Handler = {sse_hierarchy_http_eventsource_handler, Id},
     sse_hierarchy_event:add_handler(EventManager, Handler, [Id]),
-    {ok, R2, #state{path = Path, handler = Handler, event_manager = EventManager}}.
+    {ok, R2, State#state{path = Path, handler = Handler, event_manager = EventManager}}.
 
 handle(R1, State) ->
     Headers = [{'Content-Type', <<"text/event-stream">>},
@@ -99,9 +117,9 @@ format(Id, Value, undefined, undefined) ->
 format(Id, _, Data, undefined) ->
     io_lib:format("id: ~p~ndata: ~s~n~n", [Id, jsx:to_json(Data, [])]);
 format(Id, _, undefined, Event) ->
-    io_lib:format("id: ~p~nevent: ~s~n~n", [Id, Event]);
+    io_lib:format("id: ~p~nevent: ~s~n~n", [Id, binary_to_list(Event)]);
 format(Id, _, Data, Event) ->
-    io_lib:format("id: ~p~ndata: ~s~nevent: ~s~n~n", [Id, jsx:to_json(Data, []), Event]).
+    io_lib:format("id: ~p~nevent: ~s~ndata: ~s~n~n", [Id, binary_to_list(Event), jsx:to_json(Data, [])]).
 
 
 
