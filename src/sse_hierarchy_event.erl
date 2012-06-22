@@ -19,23 +19,25 @@
 	 delete_handler/3,
 	 notify_update/4]).
 
+-spec add_handler(pid(), gen_event:handler()) -> gen_event:add_handler_ret().
 add_handler(Manager, Handler) ->
     add_handler(Manager, Handler, []).
 
+-spec add_handler(pid(), gen_event:handler(), list()) -> gen_event:add_handler_ret().
 add_handler(Manager, Handler, Args) ->
     sse_monitoring:increment_counter(hierarchy_event_handlers),
     gen_event:add_handler(Manager, Handler, Args).
 
+-spec delete_handler(pid(), gen_event:handler()) -> gen_event:del_handler_ret().
 delete_handler(Manager, Handler) ->
     delete_handler(Manager, Handler, []).
 
+-spec delete_handler(pid(), gen_event:handler(), list()) -> gen_event:del_handler_ret().
 delete_handler(Manager, Handler, Args) ->
     sse_monitoring:decrement_counter(hierarchy_event_handlers),
     gen_event:delete_handler(Manager, Handler, Args).
 
+-spec notify_update(pid(), term(), term(), term()) -> ok.
 notify_update(Manager, Path, Id, Value) ->
     sse_monitoring:increment_counter(hierarchy_event_updates),
-    notify(Manager, {update, Path, Id, Value}).
-
-notify(Manager, Message) ->
-    gen_event:notify(Manager, Message).
+    gen_event:notify(Manager, {update, Path, Id, Value}).

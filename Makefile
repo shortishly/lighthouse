@@ -1,5 +1,6 @@
 REBAR = rebar
 DIALYZER = dialyzer
+PLT = .sse_dialyzer.plt
 
 .PHONY: all deps clean compile test ct build-plt dialyze
 
@@ -27,9 +28,19 @@ ct:
 
 
 build-plt:
-	@$(DIALYZER) --build_plt --output_plt .sse_dialyzer.plt \
-		--apps kernel stdlib sasl inets crypto public_key ssl
+	@$(DIALYZER) --build_plt --output_plt $(PLT) \
+		--apps tools kernel stdlib sasl inets crypto public_key ssl \
+		-r deps
+
+plt-info:
+	@$(DIALYZER) --plt_info --plt $(PLT)
 
 dialyze:
-	@$(DIALYZER) --src src --plt .sse_dialyzer.plt -Werror_handling \
-		-Wrace_conditions -Wunmatched_returns -Wunderspecs -Wno_behaviours
+	@$(DIALYZER) --src src \
+		--plt $(PLT) \
+		--verbose \
+		-Werror_handling \
+		-Wrace_conditions \
+		-Wunmatched_returns \
+		-Wunderspecs \
+		-Wno_behaviours

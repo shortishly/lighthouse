@@ -47,7 +47,7 @@ start_link(Parameters) ->
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
 
--record(node, {tree = gb_trees:empty() :: gb_trees:tree(),
+-record(node, {tree = gb_trees:empty(),
 	       created = calendar:universal_time() :: calendar:datetime(),
 	       updated = calendar:universal_time() :: calendar:datetime(),
 	       samples,
@@ -129,7 +129,7 @@ handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(_,  S) ->
-    cleanup(S),
+    #state{} = cleanup(S),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -290,7 +290,10 @@ delete([K], #node{tree = Tree} = Node, A, EventManagers) ->
 	    {ok, Node#node{tree = gb_trees:delete(K, Tree), updated = Updated}};
 
 	{value, #node{tree = SubTree} = SubNode} when is_record(SubNode, node) ->
-	    [delete([Key], SubNode, [K | A], EventManagers) || Key <- gb_trees:keys(SubTree)],
+
+	    lists:foreach(fun(Key) ->
+				  delete([Key], SubNode, [K | A], EventManagers)
+			  end, gb_trees:keys(SubTree)),
 	    delete_event_manager(lists:reverse([K | A]), EventManagers),	    
 	    {ok, Node#node{tree = gb_trees:delete(K, Tree), updated = Updated}};
 

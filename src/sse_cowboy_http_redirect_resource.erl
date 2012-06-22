@@ -12,13 +12,16 @@
 %% ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 %% OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+%% @doc Handler for HTTP redirects.
+%%
+
 -module(sse_cowboy_http_redirect_resource).
 -behaviour(cowboy_http_handler).
 -export([init/3,
 	 handle/2,
 	 terminate/2]).
 
--record(state, {location, status}).
+-record(state, {location, status = 302}).
 
 init({tcp, http} = Protocol, Req, Args) ->
     init(Protocol, Req, Args, #state{}).
@@ -27,7 +30,7 @@ init(Protocol, Req, [{location, Location} | T], State) ->
     init(Protocol, Req, T, State#state{location = Location});
 init(Protocol, Req, [{status, Status} | T], State) ->
     init(Protocol, Req, T, State#state{status = Status});
-init(_, Req, [], State) ->
+init(_, Req, [], #state{location = Location} = State) when Location =/= undefined ->
     {ok, Req, State}.
 
 

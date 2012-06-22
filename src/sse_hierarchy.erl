@@ -41,14 +41,14 @@ name() ->
 
 -type key() :: term().
 -type value() :: term().
--opaque path() :: [key()].
+-type path() :: [key()].
 
 
--spec children() -> [term()].
+-spec children() ->  {ok, [term()]} | {error, {not_found, term(), list()}} | {error, {is_a_leaf, term(), list()}}.
 children() ->
     children([]).
 
--spec children(path()) -> {ok, [term()]} | {error, {not_found, term(), list()}}.
+-spec children(path()) -> {ok, [term()]} | {error, {not_found, term(), list()}} | {error, {is_a_leaf, term(), list()}}.
 children(Path) ->
     gen_server:call(name(), {children, Path}).
 
@@ -57,12 +57,12 @@ update(Path, Value) ->
     gen_server:abcast(name(), {update, Path, Value}),
     ok.
 
--spec delete(path()) -> ok | {error, {not_found, term(), list()}}.
+-spec delete(path()) -> ok.
 delete(Path) ->
     gen_server:abcast(name(), {delete, Path}),
     ok.
 
--spec event_manager(path()) -> {ok, pid()} | {error, term()}.
+-spec event_manager(path()) -> pid().
 event_manager(Path) ->
     gen_server:call(name(), {event_manager, Path}).
 

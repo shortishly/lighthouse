@@ -62,7 +62,7 @@ For the 1st floor master bedroom:
 You can use your browser to look at the topic structure that has been
 created, using the following URL:
 
-http://localhost:8080/topics
+`http://localhost:8080/topics`
 
 This URL presents the topic hierarchy using the ATOM syndication
 format. You can follow the structure in your browser, and also
