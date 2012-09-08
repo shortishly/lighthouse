@@ -24,7 +24,7 @@ decrement_counter(Counter) ->
     gen_server:cast(server(), {decrement_counter, Counter}).
 
 samples() ->
-    gen_server:call(server(), samples).
+    gen_server:call(server(), samples, infinity).
 
 server() ->
     sse_monitoring_server.

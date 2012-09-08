@@ -50,7 +50,7 @@ children() ->
 
 -spec children(path()) -> {ok, [term()]} | {error, {not_found, term(), list()}} | {error, {is_a_leaf, term(), list()}}.
 children(Path) ->
-    gen_server:call(name(), {children, Path}).
+    gen_server:call(name(), {children, Path}, infinity).
 
 -spec update(path(), value()) -> ok.
 update(Path, Value) ->
@@ -64,17 +64,17 @@ delete(Path) ->
 
 -spec event_manager(path()) -> pid().
 event_manager(Path) ->
-    gen_server:call(name(), {event_manager, Path}).
+    gen_server:call(name(), {event_manager, Path}, infinity).
 
 -spec values(path()) -> {ok, term()} | {error, term()}.
 values(Path) ->
-    gen_server:call(name(), {values, Path}).
+    gen_server:call(name(), {values, Path}, infinity).
 
 hierarchy() ->
-    gen_server:call(name(), hierarchy).
+    gen_server:call(name(), hierarchy, infinity).
 
 merge(State) ->
-    gen_server:call(name(), {merge, State}).
+    gen_server:call(name(), {merge, State}, infinity).
 
 
 
@@ -98,5 +98,5 @@ key(L) ->
 
 -spec stop() -> ok.
 stop() ->
-    gen_server:call(name(), stop).
+    gen_server:call(name(), stop, infinity).
     
