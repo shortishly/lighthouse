@@ -14,6 +14,5 @@ before_install:
   - gem install package_cloud
 
 after_success:
-  - fpm --verbose -s dir -t rpm --name $(bin/app) -v $(bin/version) --prefix /opt _rel
-  - package_cloud push shortishly/lighthouse/el/7 $(bin/app)-$(bin/version).x86_64.rpm
-  
+  - bin/package
+ 
