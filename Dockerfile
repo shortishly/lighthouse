@@ -1,19 +1,15 @@
-FROM shortishly/erlang
+FROM ubuntu:precise
 MAINTAINER Peter Morgan <peter.james.morgan@gmail.com>
 
-RUN yum -y update && yum -y install \
-    git
+RUN apt-get update && apt-get install -y \
+    wget
 
-WORKDIR /opt
-RUN git clone https://github.com/rebar/rebar.git
-RUN cd rebar && ./bootstrap
-RUN cd /bin && ln -s -v /opt/rebar/rebar .
+RUN wget https://packagecloud.io/install/repositories/shortishly/lighthouse/script.deb.sh
+RUN chmod u+x script.deb.sh
+RUN ./script.deb.sh
 
-WORKDIR /opt
-RUN git clone https://github.com/shortishly/lighthouse.git
-WORKDIR lighthouse
-RUN git checkout develop
-RUN make
+RUN apt-get update && apt-get install -y \
+    lighthouse
 
-ENTRYPOINT _rel/lighthouse/bin/lighthouse start
+ENTRYPOINT /opt/lighthouse/bin/lighthouse start
 EXPOSE 8181
