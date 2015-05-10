@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 DISTRIBUTOR=$(lsb_release --id --short | perl  -ne 'print lc')
-CODENAME=$(lsb_release --codename --short)
-echo $(arch)
-echo $DISTRIBUTOR
-echo $CODENAME
-fpm --verbose -s dir -t deb --url "https://github.com/shortishly/lighthouse" --name $(bin/app) -v $(bin/version) --prefix /opt _rel
-package_cloud push shortishly/lighthouse/${DISTRIBUTOR}/${CODENAME} $(bin/app)_$(bin/version)_amd64.deb
+CODENAME=$(lsb_release --codename --short | perl  -ne 'print lc')
+ARCH=$(uname -m)
+fpm --verbose -s dir -t deb --url "https://github.com/shortishly/lighthouse" --architecture ${ARCH} --name $(bin/app) -v $(bin/version) --prefix /opt _rel
+package_cloud push shortishly/lighthouse/${DISTRIBUTOR}/${CODENAME} $(bin/app)_$(bin/version)_${ARCH}.deb
