@@ -15,5 +15,5 @@ WORKDIR lighthouse
 RUN git checkout develop
 RUN make
 
-ENTRYPOINT _rel/lighthouse/bin/lighthouse console
+ENTRYPOINT _rel/lighthouse/bin/lighthouse start
 EXPOSE 8181

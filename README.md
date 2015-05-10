@@ -8,8 +8,24 @@ The server presents a hierarchy of event source topics wrapped in the
 hierarchy may be used to model chat rooms, lobbies, etc, which can be
 navigated by a client to reach a suitable event source.
 
+## Building
 
-# Quick Start
+EKC uses [erlang.mk](https://github.com/ninenines/erlang.mk). To build run:
+
+```
+make
+```
+
+[![Build Status](https://travis-ci.org/shortishly/lighthouse.svg)](https://travis-ci.org/shortishly/lighthouse)
+
+
+
+## Quick Start
+
+```sh
+docker pull shortishly/lighthouse
+```
+
 
 ## Starting the server
 

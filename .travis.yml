@@ -1,0 +1,8 @@
+---
+language: erlang
+script: make
+otp_release:
+  - 17.5
+
+before_install:
+  - gem install fpm
