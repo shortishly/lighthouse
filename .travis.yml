@@ -1,6 +1,6 @@
----
 language: erlang
 script: make
+
 otp_release:
   - 17.4
 
@@ -12,5 +12,14 @@ branches:
 before_install:
   - gem install fpm
 
-after_success:    
+after_success:
   - fpm -s dir -t rpm --name $(bin/app) -v $(bin/version) --prefix /opt _rel
+
+deploy:
+  provider: packagecloud
+  username: peter.james.morgan@gmail.com
+  dist: el/7
+  on:
+    branch: develop
+  token:
+    secure: LJU5fprG6PrSOXpC8prFuVlDKcxKAI+9krNh66790OqjKPpWBgZwJTSOYo4yFYb1/UWDQzCzhzXfeh8Hy2SBU3KNlh6AYv9xthO7SO8H3v91oYyE7LemBLm+pcSXUafVbEbg2PgM28+lt5vqTT4m9uxeupVMau9kEx7g2+FXrCg=
