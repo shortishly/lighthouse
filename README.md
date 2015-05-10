@@ -24,6 +24,7 @@ make
 
 ```sh
 docker pull shortishly/lighthouse
+docker run -P -i -t shortishly/lighthouse
 ```
 
 

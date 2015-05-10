@@ -11,5 +11,5 @@ RUN ./script.deb.sh
 RUN apt-get update && apt-get install -y \
     lighthouse
 
-ENTRYPOINT /opt/lighthouse/bin/lighthouse start
+ENTRYPOINT /opt/lighthouse/bin/lighthouse console
 EXPOSE 8181

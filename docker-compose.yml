@@ -1,0 +1,6 @@
+push:
+  image: shortishly/lighthouse
+  stdin_open: true
+  tty: false
+  ports:
+   - "8181:8181"
