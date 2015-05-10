@@ -4,5 +4,13 @@ script: make
 otp_release:
   - 17.4
 
+branches:
+  only:
+    - master
+    - develop
+
 before_install:
   - gem install fpm
+
+after_success:    
+  - fpm -s dir -t rpm --name $(bin/app) -v $(bin/version) --prefix /opt _rel

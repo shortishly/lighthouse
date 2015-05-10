@@ -1,0 +1,103 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%
+
+
+-record(version, {major :: non_neg_integer(), 
+		  minor :: non_neg_integer(), 
+		  patch :: non_neg_integer()}).
+
+main([]) ->
+    main(["app"]);
+
+main(["app"]) ->
+    display(version(application()));
+
+main(["app", "increment", Component]) ->
+    display(bump(Component, version(application())));
+
+main(["app", "write", "increment", Component]) ->
+    {application, Name, Terms} = Application = application(),
+    CurrentVersion = #version{} = version(Application),
+    NewVersion = #version{} = bump(Component, CurrentVersion),
+
+    %% write out the application configuration substituting the bumped
+    %% version for the existing.
+    %%
+    ok = file:write_file(app_src(), io_lib:format("%%-*- mode: erlang -*-~n~p.~n",
+						  [{application, 
+						    Name, 
+						    lists:map(fun({vsn, _}) ->
+								      {vsn, stringify(NewVersion)};
+								 (X) ->
+								      X
+							      end, Terms)}])),
+    {ok, Configuration} = file:consult(relx_config()),
+    
+    %% write out the release configuration substituting the bumped
+    %% version for the existing.
+    %%
+    ok = file:write_file(relx_config(), ["%%-*- mode: erlang -*-",
+					 io_lib:nl(),
+					 lists:map(bump_release(stringify(NewVersion)), Configuration)]),
+    display(NewVersion).
+
+
+bump_release(NewVersion) ->
+    fun({release, {Name, _}, Other}) ->
+	    io_lib:format("~p.~n", [{release, {Name, NewVersion}, Other}]);
+       (X) ->
+	    io_lib:format("~p.~n", [X])
+    end.
+
+
+stringify(#version{major = Major, minor = Minor, patch = Patch}) ->
+    lists:flatten(io_lib:format("~w.~w.~w", [Major, Minor, Patch])).
+
+%% there is a single readable "*.app.src" file contained in the
+%% "src" directory
+%%
+app_src() ->
+    [Filename] = filelib:wildcard(filename:join([filename:dirname(escript:script_name()), "../src/*.app.src"])),
+    Filename.
+
+application() ->
+    {ok, [{application, _, _} = Application]} = file:consult(app_src()),
+    Application.
+
+relx_config() ->
+    filename:join([filename:dirname(escript:script_name()), "../relx.config"]).
+
+
+%% using semantic versioning "MAJOR.MINOR.PATCH", stored in the
+%% "vsn" attribute of the application.
+%%
+version({application, _, Terms}) ->
+    [Major, Minor, Patch] = [list_to_integer(L) || L <- re:split(proplists:get_value(vsn, Terms), "\\.", [{return, list}])],
+    #version{major = Major, minor = Minor, patch = Patch}.
+    
+
+
+						
+%% bumping the patch version will only increment the patch
+%% version
+%%
+bump("patch", #version{patch = Patch} = V) ->
+    V#version{patch = Patch + 1};
+
+%% bumping the minor version will reset the patch, and only increment
+%% the minor version.
+%%
+bump("minor", #version{minor = Minor} = V) ->
+    V#version{minor = Minor + 1, patch = 0};
+
+%% bumping the major version will reset both the patch and minor,
+%% and only increment the major version.
+%%
+bump("major", #version{major = Major} = V) ->
+    V#version{major = Major + 1, minor = 0, patch = 0}.
+
+
+display(#version{major = Major, minor = Minor, patch = Patch}) ->
+    io:format("~w.~w.~w\n", [Major, Minor, Patch]).
+
