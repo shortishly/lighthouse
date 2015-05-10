@@ -1,46 +1,18 @@
-REBAR = rebar
-DIALYZER = dialyzer
-PLT = .sse_dialyzer.plt
-
-.PHONY: all deps clean compile test ct build-plt dialyze
-
-all:	clean compile ct
-
-clean:
-	@$(REBAR) clean
-
-squeaky: clean
-	@$(REBAR) delete-deps
-
-deps:
-	@$(REBAR) get-deps
-
-
-compile:
-	@$(REBAR) compile
-
-
-test:
-	@$(REBAR) skip_deps=true eunit
-
-ct:
-	@$(REBAR) ct skip_deps=true
-
-
-build-plt:
-	@$(DIALYZER) --build_plt --output_plt $(PLT) \
-		--apps tools kernel stdlib sasl inets crypto public_key ssl \
-		-r deps
-
-plt-info:
-	@$(DIALYZER) --plt_info --plt $(PLT)
-
-dialyze:
-	@$(DIALYZER) --src src \
-		--plt $(PLT) \
-		--verbose \
-		-Werror_handling \
-		-Wrace_conditions \
-		-Wunmatched_returns \
-		-Wunderspecs \
-		-Wno_behaviours
+#-*- mode: makefile-gmake -*-
+# Copyright (c) 2012-2015 Peter Morgan <peter.james.morgan@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+PROJECT = lighthouse
+DEPS = gproc cowboy
+include erlang.mk

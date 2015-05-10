@@ -33,7 +33,7 @@ usage() ->
 
 push(Parameters) ->
     io:format("~p~n", [httpc:request(post,
-				     {"http://localhost:8080/event/push",
+				     {"http://localhost:8181/events",
 				      [],
 				      "application/x-www-form-urlencoded",
 				      encode(Parameters)

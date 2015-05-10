@@ -1,33 +1,17 @@
-Erlang Server-Side Events
-=========================
+# Lighthouse
 
-Erlang SSE [dl] -- 2012.
-
-[dl]: https://github.com/shortishly/erlang-sse.git
-
-Introduction
-------------
-
-Erlang SSE is an server side implementation of the W3C working draft
-[Server-Sent Events][sse], written in [Erlang][erlang], using the
-[Cowboy][cowboy], [JSX][jsx] and [MDNS][mdns] libraries.
+Lighthouse is a small, fast, modular event push server written in
+[Erlang](http://erlang.org).
 
 The server presents a hierarchy of event source topics wrapped in the
-[ATOM][atom] syndication format. This hierarchy may be used to model
-chat rooms, lobbies, etc, which can be navigated by a client to reach
-a suitable event source.
+[ATOM](http://www.ietf.org/rfc/rfc4287) syndication format. This
+hierarchy may be used to model chat rooms, lobbies, etc, which can be
+navigated by a client to reach a suitable event source.
 
-[sse]: http://www.w3.org/TR/2012/WD-eventsource-20120426/
-[erlang]: http://www.erlang.org/
-[cowboy]: https://github.com/extend/cowboy.git
-[jsx]: https://github.com/talentdeficit/jsx.git
-[mdns]: https://github.com/shortishly/erlang-mdns.git
-[atom]: http://www.ietf.org/rfc/rfc4287
 
-Quick Start
------------
+# Quick Start
 
-### Starting the server
+## Starting the server
 
 To start the server:
 
@@ -35,7 +19,7 @@ To start the server:
 (sse home)/start.sh
 ```
 
-### Pushing some example data
+## Pushing some example data
 
 In this example, we will imagine a collection of temperature sensors
 that are in located in a house.  To push an event to the server, we
