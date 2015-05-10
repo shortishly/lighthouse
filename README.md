@@ -10,7 +10,7 @@ navigated by a client to reach a suitable event source.
 
 ## Building
 
-EKC uses [erlang.mk](https://github.com/ninenines/erlang.mk). To build run:
+Lighthouse uses [erlang.mk](https://github.com/ninenines/erlang.mk). To build run:
 
 ```
 make
