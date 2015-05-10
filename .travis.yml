@@ -2,7 +2,7 @@
 language: erlang
 script: make
 otp_release:
-  - 17.5
+  - 17.4
 
 before_install:
   - gem install fpm
