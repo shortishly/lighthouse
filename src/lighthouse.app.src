@@ -24,7 +24,8 @@
                   stdlib,
 		  cowboy,
 		  sasl,
-		  gproc
+		  gproc,
+		  recon
                  ]},
   {mod, { lighthouse_application, []}}
  ]}.

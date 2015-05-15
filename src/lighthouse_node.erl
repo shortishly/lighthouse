@@ -38,7 +38,8 @@
 	 subscribers/1,
 	 node_ref/1,
 	 where_is/1,
-	 root/0
+	 root/0,
+	 counter/1
 	]).
 -export([
 	 init/1,
@@ -58,7 +59,7 @@ start_link(Name) ->
     start_link(Name, #{}).
 
 start_link(Name, Properties) ->
-    start_link(Name, #{}, #{}).
+    start_link(Name, Properties, #{}).
 
 start_link(Name, Properties, Edges) ->
     gen_server:start_link(node_ref(Name), ?MODULE, [Name, Properties, Edges], []).
@@ -128,6 +129,7 @@ init([Name, Properties, Edges]) ->
 		  end,
 		  maps:to_list(Edges)),
     Now = calendar:universal_time(),
+    true = gproc:add_local_counter(counter(messages), 0),
     {ok, #{name => Name, properties => Properties, created => Now, updated => Now, counter => 0, values => [], samples => 0}}.
 
 handle_call({edge, Label}, _, S) ->
@@ -151,6 +153,8 @@ handle_call(updated, _, #{updated := Updated} = S) ->
     {reply, Updated, S};
 handle_call(properties, _, #{properties := Properties} = S) ->
     {reply, Properties, S};
+handle_call({property, Key}, _, #{properties := Properties} = S) ->
+    {reply, maps:find(Key, Properties), S};
 handle_call({property, Key, Value}, _, #{properties := Properties, counter := Counter, samples := 0} = S) ->
     case maps:find(Key, Properties) of
 	{ok, Value} ->
@@ -187,7 +191,12 @@ terminate(_, _) ->
     gproc:goodbye().
 
 notify(Event, Value, #{name := Name, counter := Counter, created := Created}) ->
+    gproc:update_counter({c, l, counter(messages)}, 1),
     gproc:send({p, l, {?MODULE, node, Name}}, #{module => ?MODULE, from => self(), event => Event, value => Value, counter => Counter, created => Created}).
 
 where_is(Label) ->
     lighthouse_util:where_is(node_ref(Label)).
+
+counter(Type) ->
+    {?MODULE, Type}.
+

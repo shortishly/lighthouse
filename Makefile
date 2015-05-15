@@ -14,5 +14,8 @@
 # limitations under the License.
 #
 PROJECT = lighthouse
-DEPS = gproc cowboy
+DEPS = gproc cowboy recon jsx erlastic_search
+dep_recon = git https://github.com/ferd/recon.git
+dep_erlastic_search = git https://github.com/tsloughter/erlastic_search.git
+
 include erlang.mk

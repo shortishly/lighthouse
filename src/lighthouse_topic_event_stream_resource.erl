@@ -18,7 +18,9 @@
 	 info/3,
 	 terminate/3
 	 ]).
-
+-export([
+	 counter/1
+	 ]).
 
 init(_, Req, []) ->
     {Path, Req2} = cowboy_req:path_info(Req),
@@ -32,6 +34,8 @@ init(_, Req, []) ->
 		       {<<"cache-control">>, <<"no-cache">>}],
 	    {ok, Req3} = cowboy_req:chunked_reply(200, Headers, Req2),
 	    lighthouse_node:subscribe(Node),
+	    true = gproc:add_local_counter(counter(messages), 0),
+	    true = gproc:add_local_counter(counter(streams), 1),
 	    replay_events(Req3, Node, #{})
     end.
 
@@ -47,6 +51,7 @@ replay_events(Req, Node, State) ->
 replay_events(Req, [{EventId, Event} | Events], LastEventId, State) when EventId > LastEventId ->
     case cowboy_req:chunk(["id: ", integer_to_list(EventId), "\ndata: ", Event, "\n\n"], Req) of
 	ok ->
+	    update_counter(messages),
 	    replay_events(Req, Events, LastEventId, State);
 	_ ->
 	    {shutdown, Req, State}
@@ -61,14 +66,17 @@ info(#{event := {change, _}, module := lighthouse_node, counter := Counter}, Req
 info(#{event := {change, Property}, module := lighthouse_node, counter := Counter, value := Value}, Req, State) ->
     case cowboy_req:chunk(["id: ", integer_to_list(Counter), "\nevent: ", Property, "\ndata: ", Value, "\n\n"], Req) of
 	ok ->
+	    update_counter(messages),
 	    {loop, Req, State};
 	_ ->
 	    {shutdown, Req, State}
     end.
-		
 
 terminate(_, _, _) ->
     gproc:goodbye().
-    
 
+update_counter(Type) ->
+    gproc:update_counter({c, l, counter(Type)}, 1).
 
+counter(Type) ->
+    {?MODULE, Type}.

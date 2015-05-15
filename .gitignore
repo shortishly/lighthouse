@@ -3,7 +3,6 @@
 erl_crash.dump
 deps
 .eunit
-log
 .DS_Store
 .erlang.mk.*
 ebin
