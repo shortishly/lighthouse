@@ -12,12 +12,11 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 
--module(lighthouse_stats).
+-module(lighthouse_stats_sampler).
 -behaviour(gen_server).
 -export([
 	 start_link/0,
-	 stop/0,
-	 sample/0
+	 stop/0
 	]).
 -export([
 	 init/1,
@@ -32,9 +31,6 @@
 start_link() ->
     gen_server:start_link(ref(), ?MODULE, [], []).
 
-sample() ->
-    gen_server:call(ref(), sample).
-
 stop() ->
     gen_server:cast(ref(), stop).
 
@@ -43,39 +39,31 @@ ref() ->
 
 
 init([]) ->
-    true = gproc:add_local_aggr_counter(lighthouse_topic_event_stream_resource:counter(messages)),
-    true = gproc:add_local_aggr_counter(lighthouse_topic_event_stream_resource:counter(streams)),
-    true = gproc:add_local_aggr_counter(lighthouse_node:counter(messages)),
-    {ok, #{}}.
+    case lighthouse:get_env(stats_sampler_timeout) of
+	undefined ->
+	    ignore;
 
-handle_call(sample, _, S) ->
-    {reply, statistics(), S}.
+	Timeout ->
+	    {ok, #{}, list_to_integer(Timeout)}
+    end.
+
+handle_call(_, _, S) ->
+    {stop, error, S}.
 
 handle_cast(stop, S) ->
     {stop, normal, S}.
 
-handle_info(_, S) ->
-    {stop, error, S}.
+handle_info(timeout, S) ->
+    case elastic:index_document(daily, "stats", jsx:encode(lighthouse_stats:sample())) of
+	{ok, #{<<"created">> := true}} ->
+	    {stop, normal, S};
+
+	{error, Reason} ->
+	    {stop, Reason, S}
+    end.
 
 code_change(_, State, _) ->
     {ok, State}.
 
 terminate(_, _) ->
     gproc:goodbye().
-
-statistics() ->
-    #{
-       graph => #{
-	 nodes => length(lighthouse_graph:nodes()),
-	 messages => gproc:lookup_local_aggr_counter(lighthouse_node:counter(messages)),
-	 edges => length(lighthouse_graph:edges())
-	},
-       
-       stream => #{
-	 messages => gproc:lookup_local_aggr_counter(lighthouse_topic_event_stream_resource:counter(messages)),
-	 streams => gproc:lookup_local_aggr_counter(lighthouse_topic_event_stream_resource:counter(streams))
-	},
-
-       timestamp => erlang:universaltime()
-     }.
-      

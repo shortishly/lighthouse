@@ -22,21 +22,38 @@ make
 
 ## Quick Start
 
-```sh
-docker pull shortishly/lighthouse
-docker run -P -i -t shortishly/lighthouse
-```
-
-
-## Starting the server
-
-To start the server:
+Bring up an instance of
+[elasticsearch](https://registry.hub.docker.com/_/elasticsearch/) and
+also [kibana](https://www.elastic.co/products/kibana), which
+[lighthouse](https://github.com/shortishly/lighthouse) uses for
+reporting.
 
 ```sh
-(sse home)/start.sh
+docker-compose up
 ```
 
-## Pushing some example data
+Leave the above running and start a new terminal with:
+
+```sh
+./start-dev.sh
+```
+
+By default [lighthouse](https://github.com/shortishly/lighthouse) logs
+some usage statstics to the elasticsearch instance started above every 30 seconds:
+
+```sh
+open http://$(boot2docker ip):5601/
+```
+
+If you are not using [boot2docker](http://boot2docker.io) replace the
+above with the IP address of your docker host.
+
+Tell kibana about the indexes that elastic has created by navigating
+to "Settings" use the default index name or pattern as "logstash-*"
+and select "timestamp" as the time-field name. If at first nothing
+appears, wait 30 seconds or so, and click "refresh fields".
+
+### Pushing some example data
 
 In this example, we will imagine a collection of temperature sensors
 that are in located in a house.  To push an event to the server, we
@@ -45,71 +62,33 @@ example we will use the topic of **floors/ground/rooms/kitchen**, an
 event of **temperature**, and data of **21**:
 
 ```sh
-(sse home)/sse-push --data 21 --event temperature --topic floors/ground/rooms/kitchen
+curl --include --data data=22 --data event=temperature --data topic=floors/ground/rooms/kitchen http://127.0.0.1:8181/events
 ```
 
-For the lounge:
+In another terminal connect to the stream for the kitchen topic:
 
 ```sh
-(sse home)/sse-push --data 23 --event temperature --topic floors/ground/rooms/lounge
+curl -i http://127.0.0.1:8181/topic/floors/ground/rooms/kitchen
 ```
 
-For the 1st floor master bedroom:
+Push some further temperature changes:
+
 
 ```sh
-(sse home)/sse-push --data 22 --event temperature --topic floors/first/rooms/master-bedroom
+curl --include --data data=23 --data event=temperature --data topic=floors/ground/rooms/kitchen http://127.0.0.1:8181/events
+curl --include --data data=24 --data event=temperature --data topic=floors/ground/rooms/kitchen http://127.0.0.1:8181/events
 ```
+
+Observe the events that are emitted on the kitchen topic.
+
 
 You can use your browser to look at the topic structure that has been
 created, using the following URL:
 
-`http://localhost:8080/topics`
+```sh
+curl -s http://127.0.0.1:8181/topics|xmllint --format -
+```
 
 This URL presents the topic hierarchy using the ATOM syndication
 format. You can follow the structure in your browser, and also
 navigate and view an event stream.
-
-To listen to events being pushed out by the server:
-
-```sh
-(sse home)/sse-listen --topic floors/ground/rooms/kitchen
-```
-
-The above command will continue to display events that are pushed to
-the topic **floors/ground/rooms/kitchen** until you quit by pressing
-'Ctrl-C'. You can test this by running the following command in
-another terminal window:
-
-```sh
-(sse home)/sse-push --data 20 --event temperature --topic floors/ground/rooms/kitchen
-```
-
-
-sse-push
---------
-
-sse-push is used as a command line interface to push events onto the
-SSE server. It takes the following parameters:
-
-* data: the information to be communicated.
-* event: ...
-* topic: the topic
-
-sse-listen
-----------
-
-sse-listen is used as a command line interface to listen to events
-that have been pushed onto the SSE server. It takes the following
-parameters:
-
-* topic: the topic
-* last: the last event that we wish to start from
-
-
-HTTP endpoints
---------------
-
-The SSE server has the following HTTP endpoints.
-
-* event/push, the sse-push command is a wrapper for this HTTP
-  endpoint.

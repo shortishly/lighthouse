@@ -51,7 +51,7 @@ worker(Id, Module, Restart, Parameters) ->
     {Id, {Module, start_link, Parameters}, Restart, 5000, worker, [Module]}.
 
 init([]) ->
-	Procs = [worker(lighthouse_stats),
+	Procs = [supervisor(lighthouse_stats_supervisor),
 		 supervisor(lighthouse_node_supervisor),
 		 worker(lighthouse_node)],
 	{ok, {{one_for_one, 1, 5}, Procs}}.

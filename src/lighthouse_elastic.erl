@@ -1,1 +1,0 @@
--module(lighthouse_elastic).
