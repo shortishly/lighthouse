@@ -1,0 +1,20 @@
+#push:
+#  image: shortishly/lighthouse
+#  stdin_open: true
+#  tty: false
+#  ports:
+#    - "8181:8181"
+#  links:
+#    - elasticsearch
+
+elasticsearch:
+  image: elasticsearch
+  ports:
+    - "9200:9200"
+
+kibana:
+  image: shortishly/kibana
+  links:
+    - elasticsearch
+  ports:
+    - "5601:5601"

@@ -1,0 +1,9 @@
+%%-*- mode: erlang -*-
+{application,lighthouse,
+             [{description,"Small, fast, modular event push server."},
+              {vsn,"0.0.2"},
+              {registered,[]},
+              {modules,[]},
+              {applications,[kernel,stdlib,cowboy,sasl,gproc,recon,jsx,
+                             elastic]},
+              {mod,{lighthouse_application,[]}}]}.

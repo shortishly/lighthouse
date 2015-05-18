@@ -1,0 +1,18 @@
+language: erlang
+script: make
+
+otp_release:
+  - 17.4
+
+branches:
+  only:
+    - master
+    - develop
+
+before_install:
+  - gem install fpm
+  - gem install package_cloud
+
+after_success:
+  - bin/package
+ 

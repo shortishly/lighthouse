@@ -1,4 +1,4 @@
-#-*- mode: makefile-gmake -*-
+#!/usr/bin/env bash
 # Copyright (c) 2012-2015 Peter Morgan <peter.james.morgan@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-PROJECT = lighthouse
-DEPS = gproc cowboy recon jsx elastic
-dep_recon = git https://github.com/ferd/recon.git
-dep_elastic = git https://github.com/shortishly/elastic.git
+cd $(dirname $0)
+APP=$(bin/app)
 
-include erlang.mk
+export ELASTICSEARCH_PORT_9200_TCP_ADDR=$(boot2docker ip)
+export ELASTICSEARCH_PORT_9200_TCP_PORT=9200
+
+export STATS_SAMPLER_TIMEOUT=30000
+
+exec erl \
+     +K true \
+     -boot start_sasl \
+     -config dev.config \
+     -name ${APP} \
+     -pa deps/*/ebin \
+     -pa ebin \
+     -s ${APP} \
+     -s rb
+

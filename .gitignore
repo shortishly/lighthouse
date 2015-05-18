@@ -1,8 +1,11 @@
 *~
 *.plt
 erl_crash.dump
-*.beam
-deps/*
-.eunit/*
-logs/*
+deps
+.eunit
 .DS_Store
+.erlang.mk.*
+ebin
+_rel
+relx
+

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+DISTRIBUTOR=$(lsb_release --id --short | perl  -ne 'print lc')
+CODENAME=$(lsb_release --codename --short | perl  -ne 'print lc')
+ARCH=amd64
+URL="https://github.com/shortishly/lighthouse"
+PREFIX=/opt
+
+echo ${DISTRIBUTOR}
+echo ${CODENAME}
+echo ${ARCH}
+
+fpm --verbose -s dir -t deb -C _rel --url ${URL} --architecture ${ARCH} --name $(bin/app) -v $(bin/version) --prefix ${PREFIX} .
+package_cloud yank shortishly/lighthouse/${DISTRIBUTOR}/${CODENAME} $(bin/app)_$(bin/version)_${ARCH}.deb
+package_cloud push shortishly/lighthouse/${DISTRIBUTOR}/${CODENAME} $(bin/app)_$(bin/version)_${ARCH}.deb
