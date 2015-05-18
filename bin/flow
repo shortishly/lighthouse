@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+# Copyright (c) 2012-2015 Peter Morgan <peter.james.morgan@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+
+# Following the git flow process, this script creates a release branch
+# to increment the patch version number, merge the result onto master,
+# and merge the final back onto develop.
+#
+
+SCRIPT=$_
+ROOT=$(dirname $0)/..
+PATH=${PATH}:/usr/local/bin
+
+PREVIOUS_RELEASE=$(${ROOT}/bin/version app)
+
+# tidy up the working directory removing anything and everything
+# that isn't tracked (second -f removes dependencies that are
+# tracked by other external git repositories)
+#
+git clean -d -x -f -f
+git reset --hard
+
+# fetch from the origin
+#
+git pull
+
+# Checkout (and track if necessary from the origin) develop
+#
+if git show-ref --quiet --verify refs/heads/develop;
+then
+    git checkout develop
+else
+    git checkout --track refs/remotes/origin/develop
+fi
+
+# Only perform a build if there are differences between develop and
+# master.
+#
+git diff --quiet master && exit 0
+
+# If the build fails, we will rollback to develop prior to any
+# release branches or tags.
+#
+ROLLBACK=$(git show-ref --hash refs/heads/develop)
+
+# Create a release branch based off current develop branch. Branch
+# is named by incementing the patch version number (which isn't
+# updated on the filesystem yet - to ensure that it is still clean
+# to create the branch).
+#
+git checkout -b release/$(${ROOT}/bin/version app increment patch) develop
+
+# Release branch is now created, safely write the new release
+# number into the OTP application version manifest
+#
+RELEASE=$(${ROOT}/bin/version app write increment patch)
+
+# Commit the new release version number into the release branch.
+#
+git commit -a -m "version bump for release ${RELEASE} branch"
+
+# Checkout master, merge in the release branch. Tag the result
+# with the new version number.
+#
+git checkout master
+git merge --no-ff -m "release ${RELEASE}" release/${RELEASE}
+git tag -m "release ${RELEASE}" ${RELEASE}
+git branch -d release/${RELEASE}
+
+# Checkout develop and merge the new master in.
+#
+git checkout develop
+git merge master
+
+function rollback {
+    # Something bad happened during the build, roll back
+    # releases branch and tag.
+    #
+    echo "rolling back ${RELEASE} to ${ROLLBACK} at $(/bin/date)"
+    
+    git tag -d ${RELEASE}
+    git reset --hard ${ROLLBACK}
+    
+    # tidy up the working directory removing anything and everything
+    # that isn't tracked.
+    #
+    git clean -d -x -f -f
+}
+
+# exit immediately if a command exits with a non-zero exit status
+#
+set -e
+
+# trap and rollback any changes on error
+#
+trap rollback ERR
+
+# Clean the workspace and produce a new build for release.
+#
+make
+
+# Push the develop and master branches, together with any tags to
+# the origin.
+#
+git push --tags origin develop master
+
+echo "build completed at $(/bin/date)"
